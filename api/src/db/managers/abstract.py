@@ -25,9 +25,5 @@ class AbstractBrokerManager(ABC):
     """Простой менеджер для работы с Брокером."""
 
     @abstractmethod
-    async def publish(self, msg: Notification):
-        """Публикация сообщения в брокере.
-
-        :param msg:
-        :return:
-        """
+    async def publish(self, msg: Notification, routing_key: str):
+        """Публикация сообщения в брокере."""

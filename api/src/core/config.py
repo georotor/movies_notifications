@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     mongo_uri: str = 'mongodb://127.0.0.1:27017/'
     mongo_db: str = 'notifications'
     rabbit_uri: str = 'amqp://guest:guest@127.0.0.1/'
+    rabbit_exchange: str = 'notifications'
 
     logging: Logging = Logging()
 

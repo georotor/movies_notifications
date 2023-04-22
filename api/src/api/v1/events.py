@@ -19,6 +19,6 @@ async def notification_create(
         event: Event,
         notifications: Notifications = Depends(get_notification_service)
 ):
-    await notifications.create(event)
+    await notifications.send(event)
 
     return {'status': 'successfully created'}
