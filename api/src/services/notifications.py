@@ -17,12 +17,12 @@ class Notifications:
         self.db = db
         self.rabbit = rabbit
 
-    async def create(self, event: Event):
+    async def send(self, event: Event):
         """Записываем в базу и отправляем в очередь."""
         notification = Notification(**event.dict())
 
         await self.db.save('notifications', notification.dict())
-        await self.rabbit.publish(notification)
+        await self.rabbit.publish(notification, routing_key='{0}.send'.format(event.type.value))
 
         logger.info('Notifications {0} published'.format(notification.notification_id))
 

@@ -4,6 +4,7 @@ import logging
 from aio_pika import Message, RobustConnection
 from fastapi import Depends
 
+from core.config import settings
 from db.managers.abstract import AbstractBrokerManager
 from db.rabbit import get_rabbit
 from models.schemas import Notification
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 class RabbitManager(AbstractBrokerManager):
     """Реализация AbstractBrokerManager для Rabbit."""
 
-    def __init__(self, rabbit):
+    def __init__(self, rabbit, exchange_name):
         """Конструктор класса.
 
         :param rabbit: Инициированное подключение к брокеру
@@ -22,28 +23,26 @@ class RabbitManager(AbstractBrokerManager):
         self.rabbit = rabbit
         self.channel = None
         self.exchange = None
+        self.exchange_name = exchange_name
 
     async def init_async(self):
         """Асинхронная инициализация обменника в брокере."""
         self.channel = await self.rabbit.channel()
-        self.exchange = await self.channel.declare_exchange('direct', auto_delete=True, durable=True)
+        self.exchange = await self.channel.get_exchange(self.exchange_name)
 
-    async def publish(self, msg: Notification):
+    async def publish(self, msg: Notification, routing_key: str):
         """Публикация сообщения в брокере.
 
         :param msg: Сообщение для публикации
         """
-        queue = await self.channel.declare_queue(name=msg.event, auto_delete=True, durable=True)
-        await queue.bind(self.exchange, msg.event)
-
         await self.exchange.publish(
             Message(body=msg.json().encode()),
-            routing_key=msg.event
+            routing_key=routing_key
         )
 
 
 async def get_broker_manager(rabbit: RobustConnection = Depends(get_rabbit)) -> AbstractBrokerManager:
     """DI для FastAPI. Получаем менеджер для Rabbit."""
-    manager = RabbitManager(rabbit=rabbit)
+    manager = RabbitManager(rabbit=rabbit, exchange_name=settings.rabbit_exchange)
     await manager.init_async()
     return manager
