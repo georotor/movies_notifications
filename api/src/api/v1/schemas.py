@@ -1,4 +1,5 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+
 
 from models.schemas import EventEnum, TypeEnum
 
@@ -11,4 +12,5 @@ class TemplateShort(BaseModel):
 
 
 class TemplateFull(TemplateShort):
+    subject: str | None
     content: str

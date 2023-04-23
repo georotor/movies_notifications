@@ -28,9 +28,23 @@ class Notification(Event):
 
 class Template(BaseModel):
     name: str
-    content: str
     event: EventEnum | None
     type: TypeEnum = TypeEnum.email
+    subject: str | None
+    content: str
+
+    @validator('subject', always=True)
+    def validate_subject(cls, subject, values):
+        if values.get('type') == TypeEnum.email and not subject:
+            raise HTTPException(status_code=400, detail='Subject field is required for email type')
+
+        if subject:
+            try:
+                Environment().parse(subject)
+            except TemplateSyntaxError as e:
+                raise HTTPException(status_code=400, detail='Invalid template subject: {0}'.format(e))
+
+        return subject
 
     @validator('content')
     def validate_content(cls, content):
