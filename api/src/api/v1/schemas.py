@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 from models.schemas import EventEnum, TypeEnum
 
 
