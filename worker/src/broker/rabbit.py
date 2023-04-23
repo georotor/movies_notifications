@@ -21,5 +21,5 @@ class Rabbit(Broker):
     async def consume(self, queue, callback):
         async with queue.iterator() as queue_iter:
             async for message in queue_iter:
-                async with message.process():
-                    await callback(message)
+                await callback(message)
+                await message.ack()

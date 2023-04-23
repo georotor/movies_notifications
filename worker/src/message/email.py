@@ -1,32 +1,61 @@
+import logging
 import json
+from uuid import UUID
 
 from aio_pika import IncomingMessage
 from jinja2 import Template
 
+from auth.abstract import Auth
 from db.abstract import DBManager
 from message.abstarct import Message
 from sender.abstract import Sender
 
+logger = logging.getLogger(__name__)
+
 
 class EmailMessage(Message):
-    def __init__(self, db: DBManager, email_sender: Sender):
+    def __init__(self, db: DBManager, email_sender: Sender, user_data: Auth):
         self.db = db
         self.email_sender = email_sender
+        self.user_data = user_data
 
-    async def handle(self, message: IncomingMessage) -> tuple[str, str, dict]:
+    async def handle(self, message: IncomingMessage) -> dict | None:
         payload = message.body.decode()
         context = json.loads(payload)
 
-        template = await self.db.get_template(context['template_id'])
-        jinja_template = Template(template['content'])
+        template = await self._get_template(context)
+        if template is None:
+            logger.error('{0} - Template not found for notifications'.format(context['notification_id']))
+            await self.db.set_notifications_status(UUID(context['notification_id']), 'Error: Template not found')
+            return
 
-        rendered_content = jinja_template.render(context['variables'])
+        jinja_subject = Template(template['subject'])
+        jinja_body = Template(template['content'])
 
-        to_email = context['to_email']
-        subject = context['subject']
+        for user_id in context['users']:
+            context['user'] = await self.user_data.get(UUID(user_id))
+            if context['user'] is None:
+                logger.warning('{0} - User {1} not found'.format(context['notification_id'], user_id))
+                continue
 
-        await self.email_sender.send(to_email, subject, rendered_content)
+            subject = jinja_subject.render({**context['user'], **context['data']})
+            body = jinja_body.render({**context['user'], **context['data']})
 
-        await message.ack()
+            to_email = context['user']['email']
 
-        return subject, to_email, context['variables']
+            await self.email_sender.send(to_email, subject, body)
+
+            logger.info('{0} - Send email'.format(context['notification_id']))
+            await self.db.set_notifications_status(UUID(context['notification_id']), 'Ok')
+
+        return context
+
+    async def _get_template(self, context: dict):
+        if 'data' in context and 'template_id' in context['data']:
+            return await self.db.get_template_by_id(context['data']['template_id'])
+
+        if context.get('event') is not None:
+            if context.get('type') is not None:
+                return await self.db.get_template_by_event_type(context['event'], context['type'])
+
+        return None
