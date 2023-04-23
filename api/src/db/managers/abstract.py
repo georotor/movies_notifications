@@ -11,6 +11,22 @@ class AbstractDBManager(ABC):
     """Простой менеджер для работы с БД."""
 
     @abstractmethod
+    async def get(self, table: str, query: dict, skip: int = 0, limit: int = 10):
+        """Выборка списка документов из БД."""
+
+    @abstractmethod
+    async def get_one(self, table: str, query: dict):
+        """Выборка одного документа из БД."""
+
+    @abstractmethod
+    async def update_one(self, table: str, id: str, doc: dict):
+        """Обновление одного документа в БД по его _id."""
+
+    @abstractmethod
+    async def delete_one(self, table: str, id: str):
+        """Удаление документа из БД по его _id."""
+
+    @abstractmethod
     async def save(self, table: str, obj_data: dict):
         """Создание записи в БД.
 
