@@ -1,12 +1,12 @@
 import logging
+from uuid import UUID
 
-from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from api.v1.schemas.templates import TemplateShort, TemplateFull
 from db.managers.abstract import AbstractDBManager
 from db.managers.mongo import get_db_manager
-from models.schemas import Template
-from .schemas import TemplateShort, TemplateFull
+from models.templates import Template
 
 
 logger = logging.getLogger(__name__)
@@ -33,7 +33,7 @@ async def create(
     logger.info('Created template {0} {1}'.format(result.inserted_id, template))
     return {
         'status': 'successfully created',
-        'template_id': str(result.inserted_id),
+        'template_id': template.template_id,
     }
 
 
@@ -50,10 +50,7 @@ async def get_list(
 ):
     templates = []
     for template in await db.get('templates', {}, skip, limit):
-        templates.append(TemplateShort.parse_obj({
-            **template,
-            'template_id': str(template['_id'])
-        }))
+        templates.append(TemplateShort.parse_obj(template))
     return templates
 
 
@@ -64,39 +61,38 @@ async def get_list(
     response_model=TemplateFull
 )
 async def get_one(
-    template_id: str,
+    template_id: UUID,
     db: AbstractDBManager = Depends(get_db_manager)
 ):
-    template = await db.get_one('templates', {'_id': ObjectId(template_id)})
+    template = await db.get_one('templates', {'template_id': template_id})
     if template:
-        return TemplateFull.parse_obj({
-            **template,
-            'template_id': str(template['_id'])
-        })
+        return TemplateFull.parse_obj(template)
 
     logger.info('Template {0} not found'.format(template_id))
     raise HTTPException(status_code=404, detail='Template not found')
 
 
 @router.put(
-    '/{template_id}',
+    '/',
     summary='Обновить шаблон',
     description='Обновляет существующий шаблон.',
     response_model=TemplateFull
 )
 async def update(
-    template_id: str,
     template: Template,
     db: AbstractDBManager = Depends(get_db_manager)
 ):
-    result = await db.update_one('templates', template_id, template.dict())
+    template_id = template.template_id
+    template_id = template.template_id
+    result = await db.update_one(
+        'templates',
+        {'template_id': template_id},
+        template.dict(exclude={'template_id': True})
+    )
 
     if result.modified_count == 1:
         logger.info('Template {0} updated'.format(template_id))
-        return TemplateFull.parse_obj({
-            **template.dict(),
-            'template_id': template_id
-        })
+        return TemplateFull.parse_obj(await db.get_one('templates', {'template_id': template_id}))
 
     logger.info('Template {0} not found'.format(template_id))
     raise HTTPException(status_code=404, detail='Template not found')
@@ -108,10 +104,10 @@ async def update(
     description='Удаляет существующий шаблон.',
 )
 async def delete(
-    template_id: str,
+    template_id: UUID,
     db: AbstractDBManager = Depends(get_db_manager)
 ):
-    result = await db.delete_one('templates', template_id)
+    result = await db.delete_one('templates', {'template_id': template_id})
 
     if result.deleted_count == 1:
         logger.info('Template {0} deleted'.format(template_id))

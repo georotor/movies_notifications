@@ -8,6 +8,22 @@
         "arguments": {
             "x-queue-type": "classic"
         }
+    }, {
+        "name": "notifications.scheduled",
+        "vhost": "/",
+        "durable": true,
+        "auto_delete": false,
+        "arguments": {
+            "x-queue-type": "classic"
+        }
+    }, {
+        "name": "notifications.remove",
+        "vhost": "/",
+        "durable": true,
+        "auto_delete": false,
+        "arguments": {
+            "x-queue-type": "classic"
+        }
     }
 ],
 "exchanges": [
@@ -28,6 +44,20 @@
         "destination": "emails.send",
         "destination_type": "queue",
         "routing_key": "email.send",
+        "arguments": {}
+    }, {
+        "source": "notifications",
+        "vhost": "/",
+        "destination": "notifications.scheduled",
+        "destination_type": "queue",
+        "routing_key": "notification.scheduled",
+        "arguments": {}
+    }, {
+        "source": "notifications",
+        "vhost": "/",
+        "destination": "notifications.remove",
+        "destination_type": "queue",
+        "routing_key": "notification.remove",
         "arguments": {}
     }
   ],

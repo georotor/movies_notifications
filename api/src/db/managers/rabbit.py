@@ -1,13 +1,14 @@
 """Реализация AbstractBrokerManager для RabbitMQ."""
 import logging
+from typing import Type
 
 from aio_pika import Message, RobustConnection
 from fastapi import Depends
+from pydantic import BaseModel
 
 from core.config import settings
 from db.managers.abstract import AbstractBrokerManager
 from db.rabbit import get_rabbit
-from models.schemas import Notification
 
 logger = logging.getLogger(__name__)
 
@@ -30,11 +31,8 @@ class RabbitManager(AbstractBrokerManager):
         self.channel = await self.rabbit.channel()
         self.exchange = await self.channel.get_exchange(self.exchange_name)
 
-    async def publish(self, msg: Notification, routing_key: str):
-        """Публикация сообщения в брокере.
-
-        :param msg: Сообщение для публикации
-        """
+    async def publish(self, msg: Type[BaseModel], routing_key: str):
+        """Публикация сообщения в брокере."""
         await self.exchange.publish(
             Message(body=msg.json().encode()),
             routing_key=routing_key

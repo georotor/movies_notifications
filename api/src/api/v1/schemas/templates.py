@@ -1,11 +1,12 @@
+from uuid import UUID
 from pydantic import BaseModel
 
 
-from models.schemas import EventEnum, TypeEnum
+from models.notifications import EventEnum, TypeEnum
 
 
 class TemplateShort(BaseModel):
-    template_id: str
+    template_id: UUID
     name: str
     event: EventEnum | None
     type: TypeEnum

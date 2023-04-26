@@ -2,13 +2,13 @@
 import logging
 from functools import lru_cache
 
-from bson import ObjectId
 from fastapi import Depends
 from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo.errors import DuplicateKeyError
 
 from core.config import settings
 from db.mongo import get_mongo
-from db.managers.abstract import AbstractDBManager
+from db.managers.abstract import AbstractDBManager, DBManagerError
 
 logger = logging.getLogger(__name__)
 
@@ -35,20 +35,28 @@ class MongoManager(AbstractDBManager):
         collection = self._open_collection(table)
         return await collection.find_one(query)
 
-    async def update_one(self, table: str, id: str, doc: dict):
-        """Обновление одного документа в БД по его _id."""
+    async def update_one(self, table: str, query: dict, doc: dict):
+        """Обновление одного документа в БД."""
         collection = self._open_collection(table)
-        return await collection.update_one({"_id": ObjectId(id)}, {"$set": doc})
+        return await collection.update_one(query, {"$set": doc})
 
-    async def delete_one(self, table: str, id: str):
-        """Удаление документа из БД по его _id."""
+    async def delete_one(self, table: str, query: dict):
+        """Удаление документа из БД."""
         collection = self._open_collection(table)
-        return await collection.delete_one({"_id": ObjectId(id)})
+        return await collection.delete_one(query)
+
+    async def delete_many(self, table: str, query: dict):
+        """Удаление документов из БД."""
+        collection = self._open_collection(table)
+        return await collection.delete_many(query)
 
     async def save(self, table: str, obj_data: dict):
         """Создание записи в БД."""
         collection = self._open_collection(table)
-        return await collection.insert_one(obj_data)
+        try:
+            return await collection.insert_one(obj_data)
+        except DuplicateKeyError as e:
+            raise DBManagerError(str(e))
 
     def _open_collection(self, collection_name: str):
         """Переходим к нужной коллекции.
