@@ -11,11 +11,12 @@ logger = logging.getLogger(__name__)
 
 
 class PractixScheduler(Scheduler):
-    def __init__(self, task_jod):
+    def __init__(self, task_jod, exchange_name):
         self.tasks = {}
         self.scheduler = AsyncIOScheduler()
         self.scheduler.start()
         self._jod = task_jod
+        self.exchange_name = exchange_name
 
     async def add(self, task_id: UUID, run_date: datetime, args: tuple):
         if task_id in self.tasks:
@@ -25,7 +26,7 @@ class PractixScheduler(Scheduler):
             self._run_job,
             'date',
             run_date=run_date,
-            args=(task_id, args)
+            args=(task_id, (self.exchange_name,) + args)
         )
 
     async def remove(self, task_id: UUID):

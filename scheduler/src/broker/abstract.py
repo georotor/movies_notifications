@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
+from typing import Type
 
-
-class BrokerConnectionError(Exception):
-    pass
+from pydantic import BaseModel
 
 
 class Broker(ABC):
@@ -11,13 +10,9 @@ class Broker(ABC):
         pass
 
     @abstractmethod
-    async def create_channel(self):
-        pass
-
-    @abstractmethod
-    async def get_queue(self, queue_name):
-        pass
-
-    @abstractmethod
     async def consume(self, queue, callback):
+        pass
+
+    @abstractmethod
+    async def publish(self, exchange_name: str, msg: Type[BaseModel], routing_key: str):
         pass
