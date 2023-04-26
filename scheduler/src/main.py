@@ -21,6 +21,7 @@ async def main():
 
     notification_message = Message(db, auth, scheduler)
     await notification_message.init()
+
     await broker.consume(settings.rabbit_queue_scheduled, notification_message.incoming)
     await broker.consume(settings.rabbit_queue_remove, notification_message.remove)
 

@@ -23,10 +23,6 @@ class Message(Notification):
     async def init(self):
         """Загрузка запланированных уведомлений из БД и постановка их в планировщик."""
         query = {
-            'enabled': True,
-            'timestamp_start': {"$gt": datetime.now().timestamp()}
-        }
-        query = {
             "$or": [
                 {"$and": [{"enabled": True}, {"timestamp_start": {"$gt": datetime.now().timestamp()}}]},
                 {"$and": [{"enabled": True}, {"cron": {"$type": "string", "$exists": True, "$ne": ""}}]}
@@ -114,7 +110,7 @@ class Message(Notification):
         await self.scheduler.remove(UUID(incoming_message['notification_id']))
 
     async def _create_sub_notifications(self, notify: ScheduledNotification) -> list[tuple[UUID, str]] | None:
-        """Создаем для уведомления для разных таймзон пользователей."""
+        """Создаем уведомления для разных таймзон пользователей."""
         result = []
         users_list = await self.user.get_list(notify.users)
         timezones = set(item['timezone'] for item in users_list)

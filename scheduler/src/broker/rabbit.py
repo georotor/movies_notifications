@@ -2,6 +2,8 @@ import json
 from typing import Type
 
 import aio_pika
+import backoff
+from aiormq.exceptions import ChannelInvalidStateError
 from pydantic import BaseModel
 
 from broker.abstract import Broker
@@ -44,6 +46,7 @@ class Rabbit(Broker):
                 await callback(context)
                 await message.ack()
 
+    @backoff.on_exception(backoff.expo, ChannelInvalidStateError)
     async def publish(self, exchange_name: str, msg: Type[BaseModel], routing_key: str):
         """Публикация сообщения в брокере."""
         exchange = await self._create_exchange(exchange_name)

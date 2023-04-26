@@ -19,6 +19,7 @@ class PractixScheduler(Scheduler):
         self.exchange_name = exchange_name
 
     async def add(self, task_id: UUID, run_date: datetime, args: tuple):
+        """Добавление нотификации в планировщик по дате."""
         if self.scheduler.get_job(job_id=str(task_id)):
             self.scheduler.get_job(job_id=str(task_id)).remove()
 
@@ -31,6 +32,7 @@ class PractixScheduler(Scheduler):
         )
 
     async def add_cron(self, task_id: UUID, cron: str, timezone: str, args: tuple):
+        """Добавление нотификации в планировщик по крону."""
         if self.scheduler.get_job(job_id=str(task_id)):
             self.scheduler.get_job(job_id=str(task_id)).remove()
 
@@ -42,5 +44,6 @@ class PractixScheduler(Scheduler):
         )
 
     async def remove(self, task_id: UUID):
+        """Удаление нотификации из планировщика."""
         if self.scheduler.get_job(job_id=str(task_id)):
             self.scheduler.get_job(job_id=str(task_id)).remove()
