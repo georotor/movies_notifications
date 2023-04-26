@@ -27,6 +27,7 @@ class Notification(Event):
 
 
 class Template(BaseModel):
+    template_id: UUID = Field(default_factory=uuid4)
     name: str
     event: EventEnum | None
     type: TypeEnum = TypeEnum.email
@@ -54,3 +55,22 @@ class Template(BaseModel):
             raise HTTPException(status_code=400, detail='Invalid template content: {0}'.format(e))
 
         return content
+
+
+class ScheduledNotification(BaseModel):
+    scheduled_id: UUID = Field(default_factory=uuid4)
+    name: str
+    timestamp_start: int
+    type: TypeEnum = TypeEnum.email
+    template_id: UUID
+    users: list[UUID]
+    data: dict
+    enabled: bool = True
+
+
+class BrokerMessage(BaseModel):
+    notification_id: UUID
+
+
+class SubScheduledNotification:
+    pass

@@ -8,7 +8,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 
-from api.v1 import events, templates
+from api.v1 import events, templates, schedulers
 from db import mongo, rabbit
 from core.config import settings
 from core.logger import LOGGING
@@ -43,6 +43,7 @@ async def shutdown():
 
 app.include_router(events.router, prefix='/api/v1/notifications', tags=['notifications'])
 app.include_router(templates.router, prefix='/api/v1/templates', tags=['templates'])
+app.include_router(schedulers.router, prefix='/api/v1/schedulers', tags=['schedulers'])
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=False)

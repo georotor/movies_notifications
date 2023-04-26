@@ -1,7 +1,9 @@
 """Описание интерфейса для работы с БД."""
 from abc import ABC, abstractmethod
+from typing import Type
 
-from models.schemas import Notification
+from pydantic import BaseModel
+
 
 class DBManagerError(Exception):
     """Базовое исключение для ошибок в работе менеджера БД."""
@@ -19,11 +21,11 @@ class AbstractDBManager(ABC):
         """Выборка одного документа из БД."""
 
     @abstractmethod
-    async def update_one(self, table: str, id: str, doc: dict):
+    async def update_one(self, table: str, query: dict, doc: dict):
         """Обновление одного документа в БД по его _id."""
 
     @abstractmethod
-    async def delete_one(self, table: str, id: str):
+    async def delete_one(self, table: str, query: dict):
         """Удаление документа из БД по его _id."""
 
     @abstractmethod
@@ -41,5 +43,5 @@ class AbstractBrokerManager(ABC):
     """Простой менеджер для работы с Брокером."""
 
     @abstractmethod
-    async def publish(self, msg: Notification, routing_key: str):
+    async def publish(self, msg: Type[BaseModel], routing_key: str):
         """Публикация сообщения в брокере."""

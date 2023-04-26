@@ -1,6 +1,9 @@
 db.notifications.createIndex({ notification_id: 1 }, { unique: true });
+db.scheduled_notifications.createIndex({ scheduled_id: 1 }, { unique: true });
+db.templates.createIndex({ template_id: 1 }, { unique: true });
 
 db.templates.insertOne({
+  template_id: UUID(),
   name: 'Регистрация нового пользователя',
   event: 'registered',
   type: 'email',
