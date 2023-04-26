@@ -12,6 +12,7 @@ class Rabbit(Broker):
         self.rabbitmq_uri = rabbitmq_uri
         self.exchange = None
         self.connection = None
+        self.chanel = None
 
     async def connect(self):
         if self.connection is None:
@@ -20,7 +21,9 @@ class Rabbit(Broker):
 
     async def create_channel(self):
         connection = await self.connect()
-        return await connection.channel()
+        if self.chanel is None:
+            self.chanel = await connection.channel()
+        return self.chanel
 
     async def get_queue(self, queue_name: str):
         channel = await self.create_channel()

@@ -31,8 +31,16 @@ async def main():
     await broker.consume(scheduled_queue, notification_message.scheduled)
     await broker.consume(remove_queue, notification_message.remove)
 
+    try:
+        # Wait until terminate
+        await asyncio.Future()
+    finally:
+        await broker.connection.close()
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.create_task(main())
-    loop.run_forever()
+    asyncio.run(main())
+
+# if __name__ == "__main__":
+#     loop = asyncio.get_event_loop()
+#     loop.create_task(main())
+#     loop.run_forever()
