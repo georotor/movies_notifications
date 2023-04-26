@@ -3,6 +3,7 @@ from datetime import datetime
 from uuid import UUID
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 
 from scheduler.abstract import Scheduler
 
@@ -11,29 +12,35 @@ logger = logging.getLogger(__name__)
 
 
 class PractixScheduler(Scheduler):
-    def __init__(self, task_jod, exchange_name):
-        self.tasks = {}
+    def __init__(self, task_job, exchange_name):
         self.scheduler = AsyncIOScheduler()
         self.scheduler.start()
-        self._jod = task_jod
+        self._job = task_job
         self.exchange_name = exchange_name
 
     async def add(self, task_id: UUID, run_date: datetime, args: tuple):
-        if task_id in self.tasks:
-            self.tasks[task_id].remove()
+        if self.scheduler.get_job(job_id=str(task_id)):
+            self.scheduler.get_job(job_id=str(task_id)).remove()
 
-        self.tasks[task_id] = self.scheduler.add_job(
-            self._run_job,
+        return self.scheduler.add_job(
+            self._job,
             'date',
             run_date=run_date,
-            args=(task_id, (self.exchange_name,) + args)
+            args=(self.exchange_name,) + args,
+            id=str(task_id)
+        )
+
+    async def add_cron(self, task_id: UUID, cron: str, timezone: str, args: tuple):
+        if self.scheduler.get_job(job_id=str(task_id)):
+            self.scheduler.get_job(job_id=str(task_id)).remove()
+
+        return self.scheduler.add_job(
+            self._job,
+            CronTrigger.from_crontab(cron, timezone=timezone),
+            args=(self.exchange_name,) + args,
+            id=str(task_id)
         )
 
     async def remove(self, task_id: UUID):
-        if task_id in self.tasks:
-            self.tasks[task_id].remove()
-            del self.tasks[task_id]
-
-    async def _run_job(self, task_id: UUID, args: tuple):
-        await self._jod(*args)
-        del self.tasks[task_id]
+        if self.scheduler.get_job(job_id=str(task_id)):
+            self.scheduler.get_job(job_id=str(task_id)).remove()

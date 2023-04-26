@@ -17,6 +17,13 @@ class MongoDBManager(DBManager):
         self.notifications = self.database['notifications']
         self.scheduled = self.database['scheduled']
 
+    async def find(self, table: str, query: dict):
+        """Поиск документов в таблице."""
+        docs = []
+        async for doc in self.database[table].find(query):
+            docs.append(doc)
+        return docs
+
     async def get_one(self, table: str, query: dict):
         """Выборка одного документа из БД."""
         return await self.database[table].find_one(query)

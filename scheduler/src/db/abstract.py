@@ -4,6 +4,10 @@ from uuid import UUID
 
 class DBManager(ABC):
     @abstractmethod
+    async def find(self, table: str, query: dict):
+        """Поиск документов в таблице."""
+
+    @abstractmethod
     async def get_one(self, table: str, query: dict):
         """Выборка одного документа из БД."""
 
