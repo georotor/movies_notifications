@@ -4,6 +4,7 @@ from typing import Type
 
 import aio_pika
 import backoff
+from aio_pika.abc import AbstractIncomingMessage
 from aiormq.exceptions import ChannelInvalidStateError
 from pydantic import BaseModel
 
@@ -30,25 +31,30 @@ class Rabbit(Broker):
             self.chanel = await connection.channel()
         return self.chanel
 
-    async def _create_exchange(self, exchange):
-        if self.exchange is None:
-            channel = await self._create_channel()
-            self.exchange = await channel.get_exchange(exchange)
-        return self.exchange
-
     async def _get_queue(self, queue_name: str):
         channel = await self._create_channel()
         return await channel.get_queue(queue_name)
 
     async def consume(self, queue_name, callback):
         queue = await self._get_queue(queue_name)
-        async with queue.iterator() as queue_iter:
-            async for message in queue_iter:
+
+        async def on_message(message: AbstractIncomingMessage):
+            try:
                 context = json.loads(message.body.decode())
-                # TODO: Нужен контроль исключений
-                logger.info('Consume message {0}'.format(context))
+                logger.info('Consume message {0} from queue {1}'.format(context, queue_name))
                 await callback(context)
-                await message.ack()
+            except json.decoder.JSONDecodeError as e:
+                logger.error('Invalid json in message body: {0}'.format(e))
+
+            await message.ack()
+
+        await queue.consume(on_message)
+
+    async def _create_exchange(self, exchange):
+        if self.exchange is None:
+            channel = await self._create_channel()
+            self.exchange = await channel.get_exchange(exchange)
+        return self.exchange
 
     @backoff.on_exception(backoff.expo, ChannelInvalidStateError)
     async def publish(self, exchange_name: str, msg: Type[BaseModel], routing_key: str):
