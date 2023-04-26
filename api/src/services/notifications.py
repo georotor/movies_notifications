@@ -35,7 +35,7 @@ class Notifications:
 
         logger.info('Notifications {0} published'.format(notification.notification_id))
 
-    async def scheduled(self, notification: ScheduledNotification):
+    async def create(self, notification: ScheduledNotification):
         """Сохраняет и отправляет в планировкщик отложенную рассылку."""
         template = await self.db.get_one('templates', {'template_id': notification.template_id})
         if not template:
@@ -71,12 +71,46 @@ class Notifications:
                 BrokerMessage(notification_id=notification_id),
                 routing_key='notification.remove'
             )
-            logger.info('Notification {0} publish on removed'.format(notification_id))
+            logger.info('Notification {0} for scheduled {1} publish on removed'.format(
+                notification_id,
+                scheduled_id
+            ))
 
         await self.db.delete_many('notifications', {'scheduled_id': scheduled_id})
         await self.db.delete_many('scheduled_notifications', {'scheduled_id': scheduled_id})
 
         logger.info('Scheduled notifications {0} removed'.format(scheduled_id))
+
+    async def update(self, notify_new: ScheduledNotification):
+        notify_old_doc = await self.db.get_one('scheduled_notifications', {'scheduled_id': notify_new.scheduled_id})
+        if not notify_old_doc:
+            logger.warning('Not found scheduled notifications {0}'.format(notify_new.scheduled_id))
+            raise NotificationError('Scheduled notifications {0} not found'.format(notify_new.scheduled_id))
+
+        notify_old = ScheduledNotification.parse_obj(notify_old_doc)
+        notify_new.sub_notifications = []
+        await self.db.update_one(
+            'scheduled_notifications',
+            {'scheduled_id': notify_new.scheduled_id},
+            notify_new.dict(exclude={'scheduled_id': True})
+        )
+
+        for notification_id, _ in notify_old.sub_notifications:
+            await self.rabbit.publish(
+                BrokerMessage(notification_id=notification_id),
+                routing_key='notification.remove'
+            )
+            logger.info('Notification {0} for scheduled {1} publish on removed'.format(
+                notification_id,
+                notify_new.scheduled_id
+            ))
+
+        if notify_new.enabled:
+            await self.rabbit.publish(
+                BrokerMessage(notification_id=notify_new.scheduled_id),
+                routing_key='notification.scheduled'
+            )
+            logger.info('Scheduled notification {0} published'.format(notify_new.scheduled_id))
 
 
 @lru_cache()

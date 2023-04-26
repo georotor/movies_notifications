@@ -37,11 +37,11 @@ async def get_list(
     status_code=status.HTTP_201_CREATED,
 )
 async def create(
-        event: ScheduledNotification,
+        notify: ScheduledNotificationFull,
         notifications: Notifications = Depends(get_notification_service)
 ):
     try:
-        await notifications.scheduled(event)
+        await notifications.create(ScheduledNotification.parse_obj(notify.dict()))
     except NotificationError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -64,6 +64,24 @@ async def get_one(
 
     logger.info('Scheduled notifications {0} not found'.format(scheduled_id))
     raise HTTPException(status_code=404, detail='Scheduled notifications not found')
+
+
+@router.put(
+    '/',
+    summary='Обновить отложенную рассылку',
+    description='Обновляет существующую рассылку.',
+    response_model=ScheduledNotificationFull
+)
+async def update(
+    notify: ScheduledNotificationFull,
+    notifications: Notifications = Depends(get_notification_service)
+):
+    try:
+        await notifications.update(ScheduledNotification.parse_obj(notify.dict()))
+    except NotificationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    return {'status': 'Scheduled notification updated'}
 
 
 @router.delete(

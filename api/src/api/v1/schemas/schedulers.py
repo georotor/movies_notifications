@@ -19,4 +19,3 @@ class ScheduledNotificationFull(ScheduledNotificationShort):
     users: list[UUID]
     data: dict
     enabled: bool = True
-    sub_notifications: Optional[list[tuple[UUID, str]]] = []
