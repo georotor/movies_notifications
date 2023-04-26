@@ -1,3 +1,4 @@
+import logging
 import json
 from typing import Type
 
@@ -7,6 +8,8 @@ from aiormq.exceptions import ChannelInvalidStateError
 from pydantic import BaseModel
 
 from broker.abstract import Broker
+
+logger = logging.getLogger(__name__)
 
 
 class Rabbit(Broker):
@@ -43,6 +46,7 @@ class Rabbit(Broker):
             async for message in queue_iter:
                 context = json.loads(message.body.decode())
                 # TODO: Нужен контроль исключений
+                logger.info('Consume message {0}'.format(context))
                 await callback(context)
                 await message.ack()
 

@@ -47,3 +47,7 @@ class PractixScheduler(Scheduler):
         """Удаление нотификации из планировщика."""
         if self.scheduler.get_job(job_id=str(task_id)):
             self.scheduler.get_job(job_id=str(task_id)).remove()
+            logger.info('Notification {0} removed from scheduler'.format(task_id))
+            return
+
+        logger.warning('Notification {0} not found in scheduler'.format(task_id))

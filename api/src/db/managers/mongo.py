@@ -41,9 +41,14 @@ class MongoManager(AbstractDBManager):
         return await collection.update_one(query, {"$set": doc})
 
     async def delete_one(self, table: str, query: dict):
-        """Удаление документа из БД по его _id."""
+        """Удаление документа из БД."""
         collection = self._open_collection(table)
         return await collection.delete_one(query)
+
+    async def delete_many(self, table: str, query: dict):
+        """Удаление документов из БД."""
+        collection = self._open_collection(table)
+        return await collection.delete_many(query)
 
     async def save(self, table: str, obj_data: dict):
         """Создание записи в БД."""

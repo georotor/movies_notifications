@@ -22,11 +22,15 @@ class AbstractDBManager(ABC):
 
     @abstractmethod
     async def update_one(self, table: str, query: dict, doc: dict):
-        """Обновление одного документа в БД по его _id."""
+        """Обновление одного документа в БД."""
 
     @abstractmethod
     async def delete_one(self, table: str, query: dict):
-        """Удаление документа из БД по его _id."""
+        """Удаление документа из БД."""
+
+    @abstractmethod
+    async def delete_many(self, table: str, query: dict):
+        """Удаление документов из БД."""
 
     @abstractmethod
     async def save(self, table: str, obj_data: dict):

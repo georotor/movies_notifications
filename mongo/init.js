@@ -1,4 +1,5 @@
 db.notifications.createIndex({ notification_id: 1 }, { unique: true });
+db.notifications.createIndex({ scheduled_id: 1 });
 db.scheduled_notifications.createIndex({ scheduled_id: 1 }, { unique: true });
 db.templates.createIndex({ template_id: 1 }, { unique: true });
 

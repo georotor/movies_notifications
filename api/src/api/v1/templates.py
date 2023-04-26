@@ -3,10 +3,10 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from api.v1.schemas.templates import TemplateShort, TemplateFull
 from db.managers.abstract import AbstractDBManager
 from db.managers.mongo import get_db_manager
-from models.schemas import Template
-from api.v1.schemas import TemplateShort, TemplateFull
+from models.templates import Template
 
 
 logger = logging.getLogger(__name__)
