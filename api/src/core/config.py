@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     rabbit_uri: str = 'amqp://guest:guest@127.0.0.1/'
     rabbit_exchange: str = 'notifications'
 
+    notification_high_priority: int = 100
+
     logging: Logging = Logging()
 
     class Config:
