@@ -28,7 +28,7 @@ async def main():
     try:
         await asyncio.Future()
     finally:
-        await broker.connection.close()
+        await broker.close()
 
 if __name__ == "__main__":
     asyncio.run(main())

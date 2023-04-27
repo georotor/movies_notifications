@@ -83,7 +83,6 @@ async def update(
     db: AbstractDBManager = Depends(get_db_manager)
 ):
     template_id = template.template_id
-    template_id = template.template_id
     result = await db.update_one(
         'templates',
         {'template_id': template_id},

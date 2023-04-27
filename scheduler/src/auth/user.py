@@ -29,6 +29,7 @@ class UserData(Auth):
 
                 return None
 
+    @backoff.on_exception(backoff.expo, (AuthError, aiohttp.ClientError))
     async def get_list(self, user_ids: list[UUID]) -> list | None:
         async with aiohttp.ClientSession() as session:
             async with session.get(self.url_list, json=json.dumps(user_ids, default=str)) as response:

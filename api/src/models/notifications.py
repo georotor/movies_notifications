@@ -17,14 +17,22 @@ class TypeEnum(str, Enum):
 
 
 class Event(BaseModel):
-    event: EventEnum
+    template_id: UUID | None = None
+    event: EventEnum | None = None
     type: TypeEnum = TypeEnum.email
     users: list[UUID]
     data: dict
 
+    @validator('event', always=True)
+    def validate_event(cls, event, values):
+        if not values.get('template_id') and not event:
+            raise HTTPException(status_code=400, detail='Must be one of the fields template_id or event')
+        return event
+
 
 class Notification(Event):
     notification_id: UUID = Field(default_factory=uuid4)
+    status: str | None
 
 
 class ScheduledNotification(BaseModel):
