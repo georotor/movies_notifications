@@ -1,35 +1,56 @@
 import logging
-from bson import ObjectId
 from uuid import UUID
-
-from db.abstract import DBManager
+from datetime import datetime
 
 from motor.motor_asyncio import AsyncIOMotorClient
 
+from db.abstract import DBManager
+
 logger = logging.getLogger(__name__)
+
 
 class MongoDBManager(DBManager):
     def __init__(self, uri: str, database_name: str):
         self.client = AsyncIOMotorClient(uri, uuidRepresentation='standard')
         self.database = self.client[database_name]
-        self.templates = self.database['templates']
-        self.notifications = self.database['notifications']
 
-    async def get_template_by_id(self, template_id: str) -> dict:
-        template = await self.templates.find_one({"_id": ObjectId(template_id)})
-        return template
+    async def get_template_by_id(self, template_id: UUID) -> dict | None:
+        return await self.database['templates'].find_one({'template_id': template_id})
 
     async def get_template_by_event_type(self, event: str, type: str) -> dict:
-        template = await self.templates.find_one({
+        return await self.database['templates'].find_one({
             'event': event,
             'type': type
         })
-        return template
+
+    async def get_notification_by_id(self, notification_id: UUID) -> dict | None:
+        pipeline = [
+            {
+                "$lookup": {
+                    "from": "scheduled_notifications",
+                    "localField": "scheduled_id",
+                    "foreignField": "scheduled_id",
+                    "as": "scheduled"
+                }
+            }, {
+                "$match": {
+                    "$and": [
+                        {"notification_id": notification_id},
+                        {"$or": [{"status": {"$ne": "Ok"}}, {"scheduled.enabled": True}]}
+                    ]
+                }
+            }
+        ]
+        result = None
+        async for doc in self.database['notifications'].aggregate(pipeline):
+            result = doc
+
+        return result
 
     async def set_notifications_status(self, notification_id: UUID, status: str):
-        result = await self.notifications.update_one(
+        result = await self.database['notifications'].update_one(
             {'notification_id': notification_id},
-            {'$set': {'status': status}}
+            {'$set': {'status': status, 'last_update': datetime.utcnow()}}
         )
 
         if result.modified_count == 1:

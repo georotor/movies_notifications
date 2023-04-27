@@ -4,11 +4,15 @@ from uuid import UUID
 
 class DBManager(ABC):
     @abstractmethod
-    async def get_template_by_id(self, template_id: str) -> dict:
+    async def get_template_by_id(self, template_id: UUID) -> dict | None:
         pass
 
     @abstractmethod
     async def get_template_by_event_type(self, event: str, type: str) -> dict:
+        pass
+
+    @abstractmethod
+    async def get_notification_by_id(self, notification_id: UUID) -> dict | None:
         pass
 
     @abstractmethod

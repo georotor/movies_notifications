@@ -17,7 +17,7 @@ class DBManager(ABC):
     async def update_one(self, table: str, query: dict, doc: dict):
         """Обновление одного документа в БД."""
 
-    async def get_template_by_id(self, template_id: str) -> dict:
+    async def get_template_by_id(self, template_id: UUID) -> dict:
         pass
 
     @abstractmethod

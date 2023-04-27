@@ -25,6 +25,7 @@ class Notifications:
 
     async def send(self, event: Event):
         """Записываем в базу неотложное уведомление и отправляем в очередь на отправку."""
+        print(event)
         notification = Notification(**event.dict())
 
         await self.db.save('notifications', notification.dict())
@@ -35,7 +36,7 @@ class Notifications:
 
         logger.info('Notifications {0} published'.format(notification.notification_id))
 
-    async def create(self, notification: ScheduledNotification):
+    async def create(self, notification: ScheduledNotification) -> ScheduledNotification:
         """Сохраняет и отправляет в планировкщик отложенную рассылку."""
         template = await self.db.get_one('templates', {'template_id': notification.template_id})
         if not template:
@@ -57,6 +58,8 @@ class Notifications:
                 routing_key='notification.scheduled'
             )
             logger.info('Scheduled notification {0} published'.format(notification.scheduled_id))
+
+        return notification
 
     async def remove(self, scheduled_id: UUID):
         notify_doc = await self.db.get_one('scheduled_notifications', {'scheduled_id': scheduled_id})

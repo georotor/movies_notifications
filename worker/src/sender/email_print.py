@@ -1,16 +1,18 @@
 from sender.abstract import Sender
 
+from models.message import EmailModel
+
 
 class PrintEmailSender(Sender):
     def __init__(self, from_email: str):
         self.from_email = from_email
 
-    async def send(self, to_email: str, subject: str, content: str) -> None:
+    async def send(self, msg: EmailModel) -> None:
         message = {
             'from_email': self.from_email,
-            'to_emails': to_email,
-            'subject': subject,
-            'html_content': content,
+            'to_emails': msg.to_email,
+            'subject': msg.subject,
+            'html_content': msg.body,
         }
 
         print(message)

@@ -30,7 +30,7 @@ async def get_sender(sender_name: str) -> Sender:
 async def start():
     broker = Rabbit(settings.rabbit_uri)
     db = MongoDBManager(settings.mongo_uri, settings.mongo_db)
-    auth = UserData(settings.auth_url)
+    auth = UserData(settings.auth_url, settings.auth_url_list)
 
     email_sender = await get_sender(settings.sender)
     email_message = EmailMessage(db, email_sender, auth)

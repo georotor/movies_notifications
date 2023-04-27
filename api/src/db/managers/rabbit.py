@@ -1,6 +1,5 @@
 """Реализация AbstractBrokerManager для RabbitMQ."""
 import logging
-from typing import Type
 
 from aio_pika import Message, RobustConnection
 from fastapi import Depends
@@ -31,7 +30,7 @@ class RabbitManager(AbstractBrokerManager):
         self.channel = await self.rabbit.channel()
         self.exchange = await self.channel.get_exchange(self.exchange_name)
 
-    async def publish(self, msg: Type[BaseModel], routing_key: str):
+    async def publish(self, msg: BaseModel, routing_key: str):
         """Публикация сообщения в брокере."""
         await self.exchange.publish(
             Message(body=msg.json().encode()),

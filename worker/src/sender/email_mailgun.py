@@ -3,6 +3,7 @@ import logging
 import aiohttp
 import backoff
 
+from models.message import EmailModel
 from sender.abstract import Sender, SenderError
 
 logger = logging.getLogger(__name__)
@@ -15,16 +16,16 @@ class MailgunSender(Sender):
         self.from_email = from_email
 
     @backoff.on_exception(backoff.expo, (SenderError, aiohttp.ClientError))
-    async def send(self, to_email: str, subject: str, content: str) -> None:
+    async def send(self, msg: EmailModel) -> None:
         async with aiohttp.ClientSession() as session:
             response = await session.post(
                 'https://api.mailgun.net/v3/{0}/messages'.format(self.domain),
                 auth=aiohttp.BasicAuth('api', self.api_key),
                 data={
                     'from': self.from_email,
-                    'to': to_email,
-                    'subject': subject,
-                    'html': content,
+                    'to': msg.to_email,
+                    'subject': msg.subject,
+                    'html': msg.body,
                 }
             )
 
@@ -32,6 +33,6 @@ class MailgunSender(Sender):
                 logger.error('Error sending email: {0}'.format(await response.text()))
                 raise SenderError('Error sending email: {0}'.format(await response.text()))
 
-            logger.info('Email <{0}> send to <{1}>'.format(subject, to_email))
+            logger.info('Send email send to {0}'.format(msg.to_email))
 
 

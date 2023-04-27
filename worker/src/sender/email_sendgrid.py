@@ -3,9 +3,10 @@ import logging
 import backoff
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
-
-from sender.abstract import Sender, SenderError
 from python_http_client.exceptions import BadRequestsError
+
+from models.message import EmailModel
+from sender.abstract import Sender, SenderError
 
 logger = logging.getLogger(__name__)
 
@@ -16,12 +17,12 @@ class SendGridEmailSender(Sender):
         self.from_email = from_email
 
     @backoff.on_exception(backoff.expo, (SenderError, BadRequestsError))
-    async def send(self, to_email: str, subject: str, content: str) -> None:
+    async def send(self, msg: EmailModel) -> None:
         message = Mail(
             from_email=self.from_email,
-            to_emails=to_email,
-            subject=subject,
-            html_content=content,
+            to_emails=msg.to_email,
+            subject=msg.subject,
+            html_content=msg.body,
         )
 
         response = await self.sg_client.send(message)
@@ -30,4 +31,4 @@ class SendGridEmailSender(Sender):
             logger.error('Failed to send email: {0}'.format(response.body))
             raise SenderError('Failed to send email: {0}'.format(response.body))
 
-        logger.info('Email <{0}> send to <{1}>'.format(subject, to_email))
+        logger.info('Send Email to {0}'.format(msg.to_email))

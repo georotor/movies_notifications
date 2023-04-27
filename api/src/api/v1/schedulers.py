@@ -35,17 +35,17 @@ async def get_list(
     summary='Создать отложенную рассылку',
     description='Создаёт и ставит в очередь на обработку отложенную рассылку.',
     status_code=status.HTTP_201_CREATED,
+    response_model=ScheduledNotificationFull
 )
 async def create(
         notify: ScheduledNotificationFull,
         notifications: Notifications = Depends(get_notification_service)
 ):
     try:
-        await notifications.create(ScheduledNotification.parse_obj(notify.dict()))
+        result = await notifications.create(ScheduledNotification.parse_obj(notify.dict()))
+        return ScheduledNotificationFull.parse_obj(result.dict())
     except NotificationError as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-    return {'status': 'Queued for processing'}
 
 
 @router.get(
@@ -69,8 +69,7 @@ async def get_one(
 @router.put(
     '/',
     summary='Обновить отложенную рассылку',
-    description='Обновляет существующую рассылку.',
-    response_model=ScheduledNotificationFull
+    description='Обновляет существующую рассылку.'
 )
 async def update(
     notify: ScheduledNotificationFull,
