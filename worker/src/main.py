@@ -3,15 +3,28 @@ from logging import config as logging_config
 
 from auth.user import UserData
 from broker.rabbit import Rabbit
-from db.mongo import MongoDBManager
 from core.config import settings
 from core.logger import LOGGING
+from db.mongo import MongoDBManager
 from message.email import EmailMessage
-#from sender.email_print import PrintEmailSender
-#from sender.email_sendgrid import SendGridEmailSender
+from sender.abstract import Sender
+from sender.email_print import PrintEmailSender
+from sender.email_sendgrid import SendGridEmailSender
 from sender.email_mailgun import MailgunSender
 
 logging_config.dictConfig(LOGGING)
+
+
+async def get_sender(sender_name: str) -> Sender:
+    match sender_name:
+        case 'print':
+            return PrintEmailSender(settings.sendgrid_from_email)
+        case 'sendgrid':
+            return SendGridEmailSender(settings.sendgrid_api_key, settings.sendgrid_from_email)
+        case 'mailgun':
+            MailgunSender(settings.mailgun_api_key, settings.mailgun_domain, settings.mailgun_from_email)
+        case _:
+            raise ValueError('Sender {0} not found'.format(sender_name))
 
 
 async def start():
@@ -19,17 +32,17 @@ async def start():
     db = MongoDBManager(settings.mongo_uri, settings.mongo_db)
     auth = UserData(settings.auth_url)
 
-    #email_sender = SendGridEmailSender(settings.sendgrid_api_key, settings.sendgrid_from_email)
-    #email_sender = PrintEmailSender(settings.sendgrid_from_email)
-    email_sender = MailgunSender(settings.mailgun_api_key, settings.mailgun_domain, settings.mailgun_from_email)
+    email_sender = await get_sender(settings.sender)
     email_message = EmailMessage(db, email_sender, auth)
 
-    email_queue = await broker.get_queue(settings.rabbit_queue)
+    await broker.consume(settings.rabbit_queue, email_message.handle)
 
-    await broker.consume(email_queue, email_message.handle)
+    try:
+        await asyncio.Future()
+    finally:
+        await broker.close()
 
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.create_task(start())
-    loop.run_forever()
+    asyncio.run(start())
+

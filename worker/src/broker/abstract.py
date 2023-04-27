@@ -1,19 +1,12 @@
 from abc import ABC, abstractmethod
+from typing import Any, Callable
 
 
 class Broker(ABC):
     @abstractmethod
-    async def connect(self):
+    async def close(self):
         pass
 
     @abstractmethod
-    async def create_channel(self):
-        pass
-
-    @abstractmethod
-    async def get_queue(self, queue_name):
-        pass
-
-    @abstractmethod
-    async def consume(self, queue, callback):
+    async def consume(self, queue_name: str, callback: Callable[[dict], Any]):
         pass

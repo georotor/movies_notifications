@@ -17,10 +17,16 @@ class TypeEnum(str, Enum):
 
 
 class Event(BaseModel):
-    event: EventEnum
+    template_id: UUID | None
+    event: EventEnum | None
     type: TypeEnum = TypeEnum.email
     users: list[UUID]
     data: dict
+
+    @validator('event', always=True)
+    def validate_subject(cls, event, values):
+        if not values.get('template_id') and not event:
+            raise HTTPException(status_code=400, detail='Must be one of the fields template_id or event')
 
 
 class Notification(Event):

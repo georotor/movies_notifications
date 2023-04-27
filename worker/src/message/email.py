@@ -19,10 +19,7 @@ class EmailMessage(Message):
         self.email_sender = email_sender
         self.user_data = user_data
 
-    async def handle(self, message: IncomingMessage) -> dict | None:
-        payload = message.body.decode()
-        context = json.loads(payload)
-
+    async def handle(self, context: dict):
         template = await self._get_template(context)
         if template is None:
             logger.error('{0} - Template not found for notifications'.format(context['notification_id']))
@@ -48,7 +45,6 @@ class EmailMessage(Message):
             logger.info('{0} - Send email'.format(context['notification_id']))
             await self.db.set_notifications_status(UUID(context['notification_id']), 'Ok')
 
-        return context
 
     async def _get_template(self, context: dict):
         if 'data' in context and 'template_id' in context['data']:

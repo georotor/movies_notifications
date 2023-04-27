@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 class Broker(ABC):
     @abstractmethod
-    async def connect(self):
+    async def close(self):
         pass
 
     @abstractmethod

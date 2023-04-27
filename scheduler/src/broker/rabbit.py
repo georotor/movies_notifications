@@ -1,6 +1,6 @@
 import logging
 import json
-from typing import Type
+from typing import Any, Callable, Type
 
 import aio_pika
 import backoff
@@ -20,22 +20,26 @@ class Rabbit(Broker):
         self.connection = None
         self.chanel = None
 
-    async def connect(self):
+    async def close(self):
+        if self.connection:
+            await self.connection.close()
+
+    async def _connect(self) -> aio_pika.abc.AbstractRobustConnection:
         if self.connection is None:
             self.connection = await aio_pika.connect_robust(self.rabbitmq_uri)
         return self.connection
 
-    async def _create_channel(self):
-        connection = await self.connect()
+    async def _create_channel(self) -> aio_pika.abc.AbstractChannel:
+        connection = await self._connect()
         if self.chanel is None:
             self.chanel = await connection.channel()
         return self.chanel
 
-    async def _get_queue(self, queue_name: str):
+    async def _get_queue(self, queue_name: str) -> aio_pika.abc.AbstractQueue:
         channel = await self._create_channel()
         return await channel.get_queue(queue_name)
 
-    async def consume(self, queue_name, callback):
+    async def consume(self, queue_name: str, callback: Callable[[dict], Any]):
         queue = await self._get_queue(queue_name)
 
         async def on_message(message: AbstractIncomingMessage):
@@ -50,7 +54,7 @@ class Rabbit(Broker):
 
         await queue.consume(on_message)
 
-    async def _create_exchange(self, exchange):
+    async def _create_exchange(self, exchange) -> aio_pika.abc.AbstractExchange:
         if self.exchange is None:
             channel = await self._create_channel()
             self.exchange = await channel.get_exchange(exchange)
