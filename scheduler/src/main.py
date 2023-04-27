@@ -15,7 +15,7 @@ logging_config.dictConfig(LOGGING)
 async def main():
     broker = Rabbit(settings.rabbit_uri)
     db = MongoDBManager(settings.mongo_uri, settings.mongo_db)
-    auth = UserData(settings.auth_url, settings.auth_url_list)
+    auth = UserData(settings.auth_url, settings.auth_url_list, settings.auth_authorization)
 
     scheduler = PractixScheduler(broker.publish, settings.rabbit_exchange)
 
