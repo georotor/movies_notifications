@@ -30,10 +30,10 @@ class RabbitManager(AbstractBrokerManager):
         self.channel = await self.rabbit.channel()
         self.exchange = await self.channel.get_exchange(self.exchange_name)
 
-    async def publish(self, msg: BaseModel, routing_key: str):
+    async def publish(self, msg: BaseModel, routing_key: str, priority: int | None = None):
         """Публикация сообщения в брокере."""
         await self.exchange.publish(
-            Message(body=msg.json().encode()),
+            Message(body=msg.json().encode(), priority=priority),
             routing_key=routing_key
         )
 

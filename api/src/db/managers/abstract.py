@@ -1,6 +1,5 @@
 """Описание интерфейса для работы с БД."""
 from abc import ABC, abstractmethod
-from typing import Type
 
 from pydantic import BaseModel
 
@@ -47,5 +46,5 @@ class AbstractBrokerManager(ABC):
     """Простой менеджер для работы с Брокером."""
 
     @abstractmethod
-    async def publish(self, msg: BaseModel, routing_key: str):
+    async def publish(self, msg: BaseModel, routing_key: str, priority: int | None = None):
         """Публикация сообщения в брокере."""

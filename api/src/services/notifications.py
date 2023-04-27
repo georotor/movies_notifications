@@ -4,6 +4,7 @@ from uuid import UUID
 
 from fastapi import Depends
 
+from core.config import settings
 from db.managers.abstract import AbstractDBManager, AbstractBrokerManager, DBManagerError
 from db.managers.mongo import get_db_manager
 from db.managers.rabbit import get_broker_manager
@@ -25,13 +26,13 @@ class Notifications:
 
     async def send(self, event: Event):
         """Записываем в базу неотложное уведомление и отправляем в очередь на отправку."""
-        print(event)
         notification = Notification(**event.dict())
 
         await self.db.save('notifications', notification.dict())
         await self.rabbit.publish(
             BrokerMessage(**notification.dict()),
-            routing_key='{0}.send'.format(event.type.value)
+            routing_key='{0}.send'.format(event.type.value),
+            priority=settings.notification_high_priority
         )
 
         logger.info('Notifications {0} published'.format(notification.notification_id))
