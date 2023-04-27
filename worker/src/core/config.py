@@ -16,6 +16,7 @@ class Settings(BaseSettings):
 
     auth_url: str = 'http://127.0.0.1/api/v1/user/'
     auth_url_list: str = 'http://127.0.0.1/api/v1/user/list'
+    auth_authorization: str = ''
 
     sender: str = 'print'
 
