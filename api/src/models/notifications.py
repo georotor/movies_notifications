@@ -6,7 +6,7 @@ from typing import Optional
 
 from cron_validator import CronValidator
 from fastapi import HTTPException
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, conlist, validator
 
 
 class EventEnum(str, Enum):
@@ -27,7 +27,7 @@ class Event(BaseModel):
     template_id: UUID | None = None
     event: EventEnum | None = None
     type: TypeEnum = TypeEnum.email
-    users: list[UUID]
+    users: conlist(UUID, min_items=1)
     data: dict
 
     @validator('event', always=True)

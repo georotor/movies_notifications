@@ -32,6 +32,15 @@ class Notifications:
         """Записываем в базу неотложное уведомление и отправляем в очередь на отправку."""
         notification = Notification(**event.dict())
 
+        if notification.template_id:
+            template = await self.db.get_one('templates', {'template_id': notification.template_id})
+            if not template:
+                logger.warning('For notification {0} not found template {1}'.format(
+                    notification.notification_id,
+                    notification.template_id,
+                ))
+                raise NotificationError('Template {0} not found'.format(notification.template_id))
+
         await self.db.save('notifications', notification.dict())
         await self.rabbit.publish(
             BrokerMessage(**notification.dict()),
