@@ -1,0 +1,44 @@
+@startuml
+skinparam componentStyle uml2
+
+package "Notifications service" as Notifications {
+    component "[Nginx]" as Nginx <<Web>>
+    component "[FastAPI]" as NotificationsApi <<Notifications API>>
+    component "[Python App]" as Scheduler <<Scheduler>>
+    queue "RabbitMQ" as Rabbit {
+        agent "Send Queue" as EmailQueue
+    }
+    database "[Mongo]" as Mongo <<Storage>>
+    component "[Python App]" as Worker <<Worker>>
+
+    NotificationsApi <-down- Nginx
+    NotificationsApi -up-> Scheduler : Отложенные отправки\n через очередь в RabbitMQ
+    NotificationsApi -> EmailQueue : Немедленные\n отправки
+    Scheduler --> Mongo
+    Scheduler -> EmailQueue
+    EmailQueue <--> Worker
+    Worker -up-> Mongo
+}
+
+package AdminPanel {
+}
+
+package AuthAPI{
+}
+
+package ELK {
+}
+
+cloud Email
+
+Worker --> Email : Отправка сообщения
+Worker ---> AuthAPI : Информация \n о пользователе
+Worker ---> ELK : Логи об отправке
+
+AdminPanel --up-> Nginx : Рассылки от\n менеджеров
+AuthAPI -up-> Nginx : Регистрация нового\n пользователя
+
+
+
+@enduml
+
