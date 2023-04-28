@@ -16,7 +16,8 @@ jobs:
       - name: Tests
         uses: cloudposse/github-action-docker-compose-test-run@main
         with:
-          file: api/src/tests/functional/docker-compose.yml
+          file: docker-compose.yml
           service: tests
+          workdir: ./api/src/tests/functional
           entrypoint: '''/bin/sh -c'''
           command: '''cd api/src && pip3 install -r tests/functional/requirements.txt && python3 -m pytest tests/functional/src'''
