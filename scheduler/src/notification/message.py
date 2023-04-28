@@ -1,3 +1,5 @@
+"""Модуль управления уведомлениями в планировщике."""
+
 import logging
 from datetime import datetime
 from uuid import UUID
@@ -15,7 +17,10 @@ logger = logging.getLogger(__name__)
 
 
 class Message(Notification):
+    """Класс управления уведомлениями в планировщике."""
+
     def __init__(self, db: DBManager, user: Auth, scheduler: Scheduler):
+        """Инициализация объекта."""
         self.db = db
         self.user = user
         self.scheduler = scheduler
@@ -23,9 +28,9 @@ class Message(Notification):
     async def init(self):
         """Загрузка запланированных уведомлений из БД и постановка их в планировщик."""
         query = {
-            "$or": [
-                {"$and": [{"enabled": True}, {"timestamp_start": {"$gt": datetime.now().timestamp()}}]},
-                {"$and": [{"enabled": True}, {"cron": {"$type": "string", "$exists": True, "$ne": ""}}]}
+            '$or': [
+                {'$and': [{'enabled': True}, {'timestamp_start': {'$gt': datetime.now().timestamp()}}]},
+                {'$and': [{'enabled': True}, {'cron': {'$type': 'string', '$exists': True, '$ne': ''}}]}
             ]
         }
         for notify in await self.db.find('scheduled_notifications', query):
@@ -54,7 +59,7 @@ class Message(Notification):
 
     async def scheduled(self, scheduled_notify: ScheduledNotification):
         """Разбиваем время выполнения по таймзонам и ставим на выполнение."""
-        if len(scheduled_notify.sub_notifications) == 0:
+        if not scheduled_notify.sub_notifications:
             scheduled_notify.sub_notifications = await self._create_sub_notifications(scheduled_notify)
             await self.db.update_one(
                 'scheduled_notifications',
@@ -119,12 +124,12 @@ class Message(Notification):
             sub_notification = SubScheduledNotification.parse_obj({
                 **notify.dict(),
                 'users': await self._get_user_with_timezone(users_list, timezone),
-                'scheduled_id': notify.scheduled_id
+                'scheduled_id': notify.scheduled_id,
             })
             await self.db.insert_one('notifications', sub_notification.dict())
             result.append((sub_notification.notification_id, timezone))
 
-        if len(result) > 0:
+        if result:
             return result
 
         return None

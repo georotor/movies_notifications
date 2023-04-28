@@ -1,13 +1,19 @@
+"""Настройки приложения."""
+
 from pydantic import BaseModel, BaseSettings
 
 
 class Logging(BaseModel):
+    """Настройки уровней логирования."""
+
     level_root: str = 'INFO'
     level_uvicorn: str = 'INFO'
     level_console: str = 'DEBUG'
 
 
 class Settings(BaseSettings):
+    """Настройки приложения."""
+
     project_name: str = 'notifications'
 
     mongo_uri: str = 'mongodb://127.0.0.1:27017/'

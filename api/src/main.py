@@ -1,3 +1,5 @@
+"""API управления уведомлениями."""
+
 from logging import config as logging_config
 
 import backoff
@@ -17,8 +19,8 @@ logging_config.dictConfig(LOGGING)
 
 app = FastAPI(
     title=settings.project_name,
-    docs_url="/api/openapi",
-    openapi_url="/api/openapi.json",
+    docs_url='/api/openapi',
+    openapi_url='/api/openapi.json',
     default_response_class=ORJSONResponse,
 )
 
@@ -45,5 +47,5 @@ app.include_router(events.router, prefix='/api/v1/notifications', tags=['notific
 app.include_router(templates.router, prefix='/api/v1/templates', tags=['templates'])
 app.include_router(schedulers.router, prefix='/api/v1/schedulers', tags=['schedulers'])
 
-if __name__ == "__main__":
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=False)
+if __name__ == '__main__':
+    uvicorn.run('main:app', host='127.0.0.1', port=8000, reload=False)

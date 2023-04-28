@@ -38,7 +38,7 @@ class MongoManager(AbstractDBManager):
     async def update_one(self, table: str, query: dict, doc: dict):
         """Обновление одного документа в БД."""
         collection = self._open_collection(table)
-        return await collection.update_one(query, {"$set": doc})
+        return await collection.update_one(query, {'$set': doc})
 
     async def delete_one(self, table: str, query: dict):
         """Удаление документа из БД."""
@@ -55,8 +55,8 @@ class MongoManager(AbstractDBManager):
         collection = self._open_collection(table)
         try:
             return await collection.insert_one(obj_data)
-        except DuplicateKeyError as e:
-            raise DBManagerError(str(e))
+        except DuplicateKeyError as err:
+            raise DBManagerError(str(err))
 
     def _open_collection(self, collection_name: str):
         """Переходим к нужной коллекции.

@@ -1,3 +1,5 @@
+"""Модели уведомлений."""
+
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -6,6 +8,8 @@ from models.base import EventEnum, TypeEnum
 
 
 class Notification(BaseModel):
+    """Модель уведомлений."""
+
     notification_id: UUID
     scheduled_id: UUID | None = None
     template_id: UUID | None

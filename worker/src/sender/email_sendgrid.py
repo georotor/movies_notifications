@@ -1,3 +1,5 @@
+"""Модуль отправки сообщений через SendGrid."""
+
 import logging
 
 import backoff
@@ -12,12 +14,16 @@ logger = logging.getLogger(__name__)
 
 
 class SendGridEmailSender(Sender):
+    """Класс отправка сообщений через SendGrid."""
+
     def __init__(self, api_key: str, from_email: str):
+        """Инициализация объекта."""
         self.sg_client = SendGridAPIClient(api_key)
         self.from_email = from_email
 
     @backoff.on_exception(backoff.expo, (SenderError, BadRequestsError))
     async def send(self, msg: EmailModel) -> None:
+        """Отправка сообщения через SendGrid."""
         message = Mail(
             from_email=self.from_email,
             to_emails=msg.to_email,

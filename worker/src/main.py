@@ -1,3 +1,5 @@
+"""Воркер отправки email сообщений."""
+
 import asyncio
 from logging import config as logging_config
 
@@ -16,6 +18,7 @@ logging_config.dictConfig(LOGGING)
 
 
 async def get_sender(sender_name: str) -> Sender:
+    """Возвращает объект отправки сообщений."""
     match sender_name:
         case 'print':
             return PrintEmailSender(settings.sendgrid_from_email)
@@ -28,6 +31,7 @@ async def get_sender(sender_name: str) -> Sender:
 
 
 async def start():
+    """Запуск воркера."""
     broker = Rabbit(settings.rabbit_uri)
     db = MongoDBManager(settings.mongo_uri, settings.mongo_db)
     auth = UserData(settings.auth_url, settings.auth_url_list, settings.auth_authorization)
@@ -43,6 +47,5 @@ async def start():
         await broker.close()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     asyncio.run(start())
-

@@ -1,3 +1,5 @@
+"""Модуль получения данных пользователей."""
+
 from abc import ABC, abstractmethod
 from uuid import UUID
 
@@ -7,6 +9,8 @@ class AuthError(Exception):
 
 
 class Auth(ABC):
+    """Класс получения данных пользователей."""
+
     @abstractmethod
     async def get(self, user_id: UUID) -> dict:
         """Данные пользователя из Auth сервиса."""
