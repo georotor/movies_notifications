@@ -1,5 +1,6 @@
 # Проектная работа 10 спринта
 
+[![CI](https://github.com/georotor/notifications_sprint_1/actions/workflows/tests.yml/badge.svg)](https://github.com/georotor/notifications_sprint_1/actions/workflows/tests.yml)
 [![CI](https://github.com/georotor/notifications_sprint_1/actions/workflows/code_style.yml/badge.svg)](https://github.com/georotor/notifications_sprint_1/actions/workflows/code_style.yml)
 
 https://github.com/georotor/notifications_sprint_1
