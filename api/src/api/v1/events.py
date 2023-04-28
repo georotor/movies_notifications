@@ -2,10 +2,10 @@
 
 import logging
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from models.notifications import Event
-from services.notifications import Notifications, get_notification_service
+from services.notifications import Notifications, NotificationError, get_notification_service
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -22,6 +22,8 @@ async def notification_create(
         notifications: Notifications = Depends(get_notification_service)
 ):
     """Получение неотложного уведомления."""
-    await notifications.send(event)
-
-    return {'status': 'successfully created'}
+    try:
+        await notifications.send(event)
+        return {'status': 'successfully created'}
+    except NotificationError as err:
+        raise HTTPException(status_code=400, detail=str(err))

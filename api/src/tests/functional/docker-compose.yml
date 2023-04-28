@@ -39,11 +39,7 @@ services:
     ports:
       - 8000:8000
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "curl -s -I http://localhost:8000/api/openapi | grep -q 'HTTP/1.1 200 OK'",
-        ]
+      test: curl -s -I http://localhost:8000/api/openapi | grep -q 'HTTP/1.1 200 OK'
       interval: 2s
       timeout: 5s
       retries: 120
