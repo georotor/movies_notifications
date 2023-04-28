@@ -2,7 +2,7 @@
 
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, conlist
 
 from models.notifications import TypeEnum
 
@@ -21,6 +21,6 @@ class ScheduledNotificationFull(ScheduledNotificationShort):
     """Полная модель отложенной рассылки."""
 
     template_id: UUID
-    users: list[UUID]
+    users: conlist(UUID, min_items=1)
     data: dict
     enabled: bool = True

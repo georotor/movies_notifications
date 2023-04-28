@@ -178,10 +178,19 @@ async def test_template_update(make_json_request, json, status):
 
 
 async def test_template_delete(make_json_request):
-    url = '/api/v1/templates/1fa11f14-1111-4111-b1fc-1c111f11afa1'
+    json = {
+        "template_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        "name": "string",
+        "type": "email",
+        "subject": "{{string}}",
+        "content": "{{string}}",
+    }
+    url = '/api/v1/templates/'
+    await make_json_request(url=url, json=json, method='POST')
+
+    url = '/api/v1/templates/3fa85f64-5717-4562-b3fc-2c963f66afa6'
     response = await make_json_request(url=url, method='DELETE')
     assert response.status == HTTPStatus.OK
 
-    url = '/api/v1/templates/1fa11f14-1111-4111-b1fc-1c111f11afa1'
     response = await make_json_request(url=url, method='GET')
     assert response.status == HTTPStatus.NOT_FOUND

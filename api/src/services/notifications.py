@@ -106,6 +106,14 @@ class Notifications:
             logger.warning('Not found scheduled notifications {0}'.format(notify_new.scheduled_id))
             raise NotificationError('Scheduled notifications {0} not found'.format(notify_new.scheduled_id))
 
+        template = await self.db.get_one('templates', {'template_id': notify_new.template_id})
+        if not template:
+            logger.warning('Not found template {0} for scheduled notification {1}'.format(
+                notify_new.template_id,
+                notify_new.scheduled_id
+            ))
+            raise NotificationError('Template {0} not found'.format(notify_new.template_id))
+
         notify_old = ScheduledNotification.parse_obj(notify_old_doc)
         notify_new.sub_notifications = []
         await self.db.update_one(
