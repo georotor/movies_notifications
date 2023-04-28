@@ -1,0 +1,22 @@
+name: Tests
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Tests
+        uses: cloudposse/github-action-docker-compose-test-run@main
+        with:
+          file: api/src/tests/functional/docker-compose.yml
+          service: tests
+          entrypoint: '''/bin/sh -c'''
+          command: '''cd api/src && pip3 install -r tests/functional/requirements.txt && python3 -m pytest tests/functional/src'''
