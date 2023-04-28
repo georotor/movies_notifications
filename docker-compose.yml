@@ -7,8 +7,8 @@ services:
       MONGO_INITDB_DATABASE: notifications
     volumes:
         - ./mongo/init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
-    ports:
-      - 27017:27017
+    expose:
+      - 27017
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh mongodb:27017/test --quiet
       interval: 2s
@@ -20,11 +20,57 @@ services:
     volumes:
       - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
       - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+    expose:
+      - 5672
     ports:
-      - 5672:5672
       - 15672:15672
     healthcheck:
-      test: [ "CMD", "nc", "-z", "localhost", "5672" ]
+      test: rabbitmq-diagnostics check_port_connectivity
       interval: 2s
       timeout: 5s
       retries: 120
+
+  api:
+    build: ./api
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/
+      - RABBIT_URI=amqp://guest:guest@rabbitmq/
+    expose:
+      - 8000
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:1.23.2
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    ports:
+      - 80:80
+    depends_on:
+      - api
+
+  scheduler:
+    build: ./scheduler
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/
+      - RABBIT_URI=amqp://guest:guest@rabbitmq/
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  worker:
+    build: ./worker
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/
+      - RABBIT_URI=amqp://guest:guest@rabbitmq/
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
