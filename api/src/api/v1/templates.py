@@ -1,3 +1,5 @@
+"""API управления шаблонами для уведомлений."""
+
 import logging
 from uuid import UUID
 
@@ -23,6 +25,7 @@ async def create(
         template: Template,
         db: AbstractDBManager = Depends(get_db_manager)
 ):
+    """Создание шаблона."""
     if template.event is not None:
         result = await db.get_one('templates', {'event': template.event, 'type': template.type})
         if result:
@@ -48,6 +51,7 @@ async def get_list(
     limit: int = 10,
     db: AbstractDBManager = Depends(get_db_manager)
 ):
+    """Список шаблонов."""
     templates = []
     for template in await db.get('templates', {}, skip, limit):
         templates.append(TemplateShort.parse_obj(template))
@@ -64,6 +68,7 @@ async def get_one(
     template_id: UUID,
     db: AbstractDBManager = Depends(get_db_manager)
 ):
+    """Получение шаблона."""
     template = await db.get_one('templates', {'template_id': template_id})
     if template:
         return TemplateFull.parse_obj(template)
@@ -82,6 +87,7 @@ async def update(
     template: Template,
     db: AbstractDBManager = Depends(get_db_manager)
 ):
+    """Обновление шаблона."""
     template_id = template.template_id
     result = await db.update_one(
         'templates',
@@ -106,6 +112,7 @@ async def delete(
     template_id: UUID,
     db: AbstractDBManager = Depends(get_db_manager)
 ):
+    """Удаление шаблона."""
     result = await db.delete_one('templates', {'template_id': template_id})
 
     if result.deleted_count == 1:

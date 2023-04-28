@@ -1,3 +1,5 @@
+"""Сервис управления отложенными уведомлениями."""
+
 import logging
 from functools import lru_cache
 from uuid import UUID
@@ -19,8 +21,10 @@ class NotificationError(Exception):
 
 
 class Notifications:
+    """Класс управления отложенными уведомлениями."""
 
     def __init__(self, db: AbstractDBManager, rabbit: AbstractBrokerManager):
+        """Инициализация объекта."""
         self.db = db
         self.rabbit = rabbit
 
@@ -49,9 +53,9 @@ class Notifications:
 
         try:
             await self.db.save('scheduled_notifications', notification.dict())
-        except DBManagerError as e:
-            logger.warning(str(e))
-            raise NotificationError(str(e))
+        except DBManagerError as err:
+            logger.warning(str(err))
+            raise NotificationError(str(err))
 
         if notification.enabled:
             await self.rabbit.publish(
@@ -63,6 +67,7 @@ class Notifications:
         return notification
 
     async def remove(self, scheduled_id: UUID):
+        """Удаление запланированной рассылки."""
         notify_doc = await self.db.get_one('scheduled_notifications', {'scheduled_id': scheduled_id})
         if not notify_doc:
             logger.warning('Not found scheduled notifications {0}'.format(scheduled_id))
@@ -86,6 +91,7 @@ class Notifications:
         logger.info('Scheduled notifications {0} removed'.format(scheduled_id))
 
     async def update(self, notify_new: ScheduledNotification):
+        """Обновление запланированной рассылки."""
         notify_old_doc = await self.db.get_one('scheduled_notifications', {'scheduled_id': notify_new.scheduled_id})
         if not notify_old_doc:
             logger.warning('Not found scheduled notifications {0}'.format(notify_new.scheduled_id))
@@ -96,23 +102,23 @@ class Notifications:
         await self.db.update_one(
             'scheduled_notifications',
             {'scheduled_id': notify_new.scheduled_id},
-            notify_new.dict(exclude={'scheduled_id': True})
+            notify_new.dict(exclude={'scheduled_id': True}),
         )
 
         for notification_id, _ in notify_old.sub_notifications:
             await self.rabbit.publish(
                 BrokerMessage(notification_id=notification_id),
-                routing_key='notification.remove'
+                routing_key='notification.remove',
             )
             logger.info('Notification {0} for scheduled {1} publish on removed'.format(
                 notification_id,
-                notify_new.scheduled_id
+                notify_new.scheduled_id,
             ))
 
         if notify_new.enabled:
             await self.rabbit.publish(
                 BrokerMessage(notification_id=notify_new.scheduled_id),
-                routing_key='notification.scheduled'
+                routing_key='notification.scheduled',
             )
             logger.info('Scheduled notification {0} published'.format(notify_new.scheduled_id))
 
@@ -120,6 +126,7 @@ class Notifications:
 @lru_cache()
 def get_notification_service(
         db: AbstractDBManager = Depends(get_db_manager),
-        rabbit: AbstractBrokerManager = Depends(get_broker_manager)
+        rabbit: AbstractBrokerManager = Depends(get_broker_manager),
 ) -> Notifications:
+    """Получение сервиса для DI."""
     return Notifications(db, rabbit)

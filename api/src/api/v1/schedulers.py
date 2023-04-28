@@ -1,3 +1,5 @@
+"""API управления отложенными уведомлениями."""
+
 import logging
 from uuid import UUID
 
@@ -24,10 +26,11 @@ async def get_list(
     limit: int = 10,
     db: AbstractDBManager = Depends(get_db_manager)
 ):
-    templates = []
-    for template in await db.get('scheduled_notifications', {}, skip, limit):
-        templates.append(ScheduledNotificationShort.parse_obj(template))
-    return templates
+    """Список отложенных уведомлений."""
+    notifys = []
+    for notify in await db.get('scheduled_notifications', {}, skip, limit):
+        notifys.append(ScheduledNotificationShort.parse_obj(notify))
+    return notifys
 
 
 @router.post(
@@ -41,11 +44,12 @@ async def create(
         notify: ScheduledNotificationFull,
         notifications: Notifications = Depends(get_notification_service)
 ):
+    """Создание отложенное рассылки."""
     try:
         result = await notifications.create(ScheduledNotification.parse_obj(notify.dict()))
         return ScheduledNotificationFull.parse_obj(result.dict())
-    except NotificationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except NotificationError as err:
+        raise HTTPException(status_code=400, detail=str(err))
 
 
 @router.get(
@@ -58,6 +62,7 @@ async def get_one(
     scheduled_id: UUID,
     db: AbstractDBManager = Depends(get_db_manager)
 ):
+    """Получение отложенное рассылки."""
     notify = await db.get_one('scheduled_notifications', {'scheduled_id': scheduled_id})
     if notify:
         return ScheduledNotificationFull.parse_obj(notify)
@@ -75,10 +80,11 @@ async def update(
     notify: ScheduledNotificationFull,
     notifications: Notifications = Depends(get_notification_service)
 ):
+    """Обновление отложенной рассылки."""
     try:
         await notifications.update(ScheduledNotification.parse_obj(notify.dict()))
-    except NotificationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except NotificationError as err:
+        raise HTTPException(status_code=400, detail=str(err))
 
     return {'status': 'Scheduled notification updated'}
 
@@ -92,9 +98,10 @@ async def delete(
     scheduled_id: UUID,
     notifications: Notifications = Depends(get_notification_service)
 ):
+    """Удаление отложенной рассылки."""
     try:
         await notifications.remove(scheduled_id)
-    except NotificationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except NotificationError as err:
+        raise HTTPException(status_code=400, detail=str(err))
 
     return {'status': 'Scheduled notification removed'}

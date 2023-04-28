@@ -1,3 +1,5 @@
+"""API для отправки неотложных уведомлений."""
+
 import logging
 
 from fastapi import APIRouter, Depends, status
@@ -19,6 +21,7 @@ async def notification_create(
         event: Event,
         notifications: Notifications = Depends(get_notification_service)
 ):
+    """Получение неотложного уведомления."""
     await notifications.send(event)
 
     return {'status': 'successfully created'}

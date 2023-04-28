@@ -16,10 +16,7 @@ class RabbitManager(AbstractBrokerManager):
     """Реализация AbstractBrokerManager для Rabbit."""
 
     def __init__(self, rabbit, exchange_name):
-        """Конструктор класса.
-
-        :param rabbit: Инициированное подключение к брокеру
-        """
+        """Конструктор класса."""
         self.rabbit = rabbit
         self.channel = None
         self.exchange = None
