@@ -1,0 +1,48 @@
+version: '3'
+services:
+  mongodb:
+    image: mongo:5.0.16
+    environment:
+      MONGO_INITDB_DATABASE: notifications
+    volumes:
+        - ../../../../mongo/init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    ports:
+      - 27017:27017
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh mongodb:27017/test --quiet
+      interval: 2s
+      timeout: 5s
+      retries: 120
+
+  rabbitmq:
+    image: rabbitmq:3.9.29-management
+    volumes:
+      - ../../../../rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ../../../../rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+    ports:
+      - 5672:5672
+      - 15672:15672
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 2s
+      timeout: 5s
+      retries: 120
+
+  api:
+    build: ../../../.
+    image: api-image
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/
+      - RABBIT_URI=amqp://guest:guest@rabbitmq/
+    expose:
+      - 8000
+    ports:
+      - 8000:8000
+
+  tests:
+    image: api-image
+    entrypoint: >
+      sh -c "pip3 install -r tests/functional/requirements.txt
+      && python3 -m pytest tests/functional/src"
+    depends_on:
+      - api

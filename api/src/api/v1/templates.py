@@ -6,7 +6,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from api.v1.schemas.templates import TemplateShort, TemplateFull
-from db.managers.abstract import AbstractDBManager
+from db.managers.abstract import AbstractDBManager, DBManagerError
 from db.managers.mongo import get_db_manager
 from models.templates import Template
 
@@ -31,9 +31,12 @@ async def create(
         if result:
             raise HTTPException(status_code=400, detail='Template with this event and type already exists')
 
-    result = await db.save('templates', template.dict())
+    try:
+        result = await db.save('templates', template.dict())
+        logger.info('Created template {0} {1}'.format(result.inserted_id, template))
+    except DBManagerError as err:
+        raise HTTPException(status_code=400, detail=str(err))
 
-    logger.info('Created template {0} {1}'.format(result.inserted_id, template))
     return {
         'status': 'successfully created',
         'template_id': template.template_id,
@@ -99,8 +102,8 @@ async def update(
         logger.info('Template {0} updated'.format(template_id))
         return TemplateFull.parse_obj(await db.get_one('templates', {'template_id': template_id}))
 
-    logger.info('Template {0} not found'.format(template_id))
-    raise HTTPException(status_code=404, detail='Template not found')
+    logger.info('Template {0} not found or not updated'.format(template_id))
+    raise HTTPException(status_code=404, detail='Template not found or not updated')
 
 
 @router.delete(
