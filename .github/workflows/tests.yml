@@ -20,4 +20,4 @@ jobs:
           service: tests
           workdir: ./api/src/tests/functional
           entrypoint: '''/bin/sh -c'''
-          command: '''cd api/src && pip3 install -r tests/functional/requirements.txt && python3 -m pytest tests/functional/src'''
+          command: '''pip3 install -r tests/functional/requirements.txt && python3 -m pytest tests/functional/src'''
