@@ -51,6 +51,8 @@ services:
 
   tests:
     image: api-image
+    environment:
+      - SERVICE_URL=http://api:8000
     entrypoint: >
       sh -c "pip3 install -r tests/functional/requirements.txt
       && python3 -m pytest tests/functional/src"

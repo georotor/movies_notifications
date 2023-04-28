@@ -27,3 +27,8 @@ https://github.com/georotor/notifications_sprint_1
 После старта будет доступен [Swagger API](http://127.0.0.1/api/openapi).
 
 Планировщик и воркер так же поднимутся, но надо учитывать что для их корректной работы необходим рабочий Auth сервис, т.к. запрашивают в нем данные о получателях.
+
+## Тестирование
+```
+docker-compose -f api/src/tests/functional/docker-compose.yml up --build tests
+```
