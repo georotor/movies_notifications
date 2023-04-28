@@ -1,3 +1,5 @@
+"""Модуль получения данных пользователей."""
+
 import json
 import logging
 from uuid import UUID
@@ -11,13 +13,17 @@ logger = logging.getLogger(__name__)
 
 
 class UserData(Auth):
+    """Класс получения данных пользователей."""
+
     def __init__(self, url: str, url_list: str, token: str):
+        """Инициализация объекта."""
         self.url = url
         self.url_list = url_list
         self.headers = {'Authorization': token}
 
     @backoff.on_exception(backoff.expo, (AuthError, aiohttp.ClientError))
     async def get(self, user_id: UUID) -> dict | None:
+        """Получения данных одного пользователя."""
         async with aiohttp.ClientSession() as session:
             async with session.get('{0}/{1}'.format(self.url, user_id), headers=self.headers) as response:
                 if response.status == 200:
@@ -32,9 +38,13 @@ class UserData(Auth):
 
     @backoff.on_exception(backoff.expo, (AuthError, aiohttp.ClientError))
     async def get_list(self, user_ids: list[UUID]) -> list | None:
+        """Получения данных списка пользователей."""
         async with aiohttp.ClientSession() as session:
-            async with session.get(self.url_list,
-                                   json=json.dumps(user_ids, default=str), headers=self.headers) as response:
+            async with session.get(
+                    self.url_list,
+                    json=json.dumps(user_ids, default=str),
+                    headers=self.headers
+            ) as response:
                 if response.status == 200:
                     return await response.json()
                 elif response.status == 404:

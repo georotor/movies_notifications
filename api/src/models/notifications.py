@@ -42,7 +42,7 @@ class Notification(Event):
     """Модель уведомления."""
 
     notification_id: UUID = Field(default_factory=uuid4)
-    status: str | None
+    status: str | None = None
 
 
 class ScheduledNotification(BaseModel):

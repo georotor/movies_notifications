@@ -1,3 +1,5 @@
+"""Модуль работы с брокером."""
+
 import logging
 import json
 from typing import Any, Callable, Type
@@ -14,13 +16,17 @@ logger = logging.getLogger(__name__)
 
 
 class Rabbit(Broker):
+    """Класс работы с брокером."""
+
     def __init__(self, rabbitmq_uri: str):
+        """Инициализация объекта."""
         self.rabbitmq_uri = rabbitmq_uri
         self.exchange = None
         self.connection = None
         self.chanel = None
 
     async def close(self):
+        """Закрытие соединения."""
         if self.connection:
             await self.connection.close()
 
@@ -40,6 +46,7 @@ class Rabbit(Broker):
         return await channel.get_queue(queue_name)
 
     async def consume(self, queue_name: str, callback: Callable[[dict], Any]):
+        """Обработка входящих сообщений."""
         queue = await self._get_queue(queue_name)
 
         async def on_message(message: AbstractIncomingMessage):

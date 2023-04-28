@@ -1,3 +1,5 @@
+"""Модуль планировщика отложенных уведомлений."""
+
 import logging
 from datetime import datetime
 from uuid import UUID
@@ -12,7 +14,10 @@ logger = logging.getLogger(__name__)
 
 
 class PractixScheduler(Scheduler):
+    """Класс планировщика отложенных уведомлений."""
+
     def __init__(self, task_job, exchange_name):
+        """Инициализация объекта."""
         self.scheduler = AsyncIOScheduler()
         self.scheduler.start()
         self._job = task_job

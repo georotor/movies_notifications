@@ -1,9 +1,13 @@
+"""Модуль планировщика отложенных уведомлений."""
+
 from abc import ABC, abstractmethod
 from datetime import datetime
 from uuid import UUID
 
 
 class Scheduler(ABC):
+    """Класс планировщика отложенных уведомлений."""
+
     @abstractmethod
     async def add(self, task_id: UUID, run_date: datetime, args: tuple):
         """Добавление нотификации в планировщик по дате."""

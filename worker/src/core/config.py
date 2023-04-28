@@ -7,7 +7,6 @@ class Logging(BaseModel):
     """Класс уровней логирования."""
 
     level_root: str = 'INFO'
-    level_uvicorn: str = 'INFO'
     level_console: str = 'DEBUG'
 
 
