@@ -1,3 +1,5 @@
+"""Модуль работы с брокером."""
+
 import logging
 import json
 from typing import Any, Callable
@@ -11,13 +13,17 @@ logger = logging.getLogger(__name__)
 
 
 class Rabbit(Broker):
+    """Класс работы с брокером."""
+
     def __init__(self, rabbitmq_uri: str):
+        """Инициализация объекта."""
         self.rabbitmq_uri = rabbitmq_uri
         self.exchange = None
         self.connection = None
         self.chanel = None
 
     async def close(self):
+        """Закрытие соединения."""
         if self.connection:
             await self.connection.close()
 
@@ -37,6 +43,7 @@ class Rabbit(Broker):
         return await channel.get_queue(queue_name)
 
     async def consume(self, queue_name: str, callback: Callable[[dict], Any]):
+        """Обработка входящего сообщения."""
         queue = await self._get_queue(queue_name)
 
         async def on_message(message: AbstractIncomingMessage):
@@ -44,8 +51,8 @@ class Rabbit(Broker):
                 context = json.loads(message.body.decode())
                 logger.info('Consume message {0} from queue {1}'.format(context, queue_name))
                 await callback(context)
-            except json.decoder.JSONDecodeError as e:
-                logger.error('Invalid json in message body: {0}'.format(e))
+            except json.decoder.JSONDecodeError as err:
+                logger.error('Invalid json in message body: {0}'.format(err))
 
             await message.ack()
 

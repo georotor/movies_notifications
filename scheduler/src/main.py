@@ -1,3 +1,4 @@
+"""Запуск планировщика уведомлений."""
 import asyncio
 from logging import config as logging_config
 
