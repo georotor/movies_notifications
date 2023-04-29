@@ -22,6 +22,15 @@ https://github.com/georotor/notifications_sprint_1
 
 ## Запуск сервиса
 
+Для запуска потребуется 3 файла с переменными окружения:
+
+- `.env.api` с настройками для API: 
+  - `cp .env.api.example .env.api`
+- `.env.scheduler` с настройками для планировщика: 
+  - `cp .env.scheduler.example .env.scheduler`
+- `.env.worker` с настройками для воркера: 
+  - `cp .env.worker.example .env.worker`
+
 Запуск осуществляется командой: `docker-compose up --build`
 
 После старта будет доступен [Swagger API](http://127.0.0.1/api/openapi).
