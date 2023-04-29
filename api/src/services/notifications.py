@@ -23,10 +23,10 @@ class NotificationError(Exception):
 class Notifications:
     """Класс управления отложенными уведомлениями."""
 
-    def __init__(self, db: AbstractDBManager, rabbit: AbstractBrokerManager):
+    def __init__(self, db: AbstractDBManager, broker: AbstractBrokerManager):
         """Инициализация объекта."""
         self.db = db
-        self.rabbit = rabbit
+        self.broker = broker
 
     async def send(self, event: Event):
         """Записываем в базу неотложное уведомление и отправляем в очередь на отправку."""
@@ -42,7 +42,7 @@ class Notifications:
                 raise NotificationError('Template {0} not found'.format(notification.template_id))
 
         await self.db.save('notifications', notification.dict())
-        await self.rabbit.publish(
+        await self.broker.publish(
             BrokerMessage(**notification.dict()),
             routing_key='{0}.send'.format(event.type.value),
             priority=settings.notification_high_priority
@@ -67,7 +67,7 @@ class Notifications:
             raise NotificationError(str(err))
 
         if notification.enabled:
-            await self.rabbit.publish(
+            await self.broker.publish(
                 BrokerMessage(notification_id=notification.scheduled_id),
                 routing_key='notification.scheduled'
             )
@@ -85,7 +85,7 @@ class Notifications:
         notify = ScheduledNotification.parse_obj(notify_doc)
 
         for notification_id, _ in notify.sub_notifications:
-            await self.rabbit.publish(
+            await self.broker.publish(
                 BrokerMessage(notification_id=notification_id),
                 routing_key='notification.remove'
             )
@@ -123,7 +123,7 @@ class Notifications:
         )
 
         for notification_id, _ in notify_old.sub_notifications:
-            await self.rabbit.publish(
+            await self.broker.publish(
                 BrokerMessage(notification_id=notification_id),
                 routing_key='notification.remove',
             )
@@ -133,7 +133,7 @@ class Notifications:
             ))
 
         if notify_new.enabled:
-            await self.rabbit.publish(
+            await self.broker.publish(
                 BrokerMessage(notification_id=notify_new.scheduled_id),
                 routing_key='notification.scheduled',
             )
@@ -143,7 +143,7 @@ class Notifications:
 @lru_cache()
 def get_notification_service(
         db: AbstractDBManager = Depends(get_db_manager),
-        rabbit: AbstractBrokerManager = Depends(get_broker_manager),
+        broker: AbstractBrokerManager = Depends(get_broker_manager),
 ) -> Notifications:
     """Получение сервиса для DI."""
-    return Notifications(db, rabbit)
+    return Notifications(db, broker)
