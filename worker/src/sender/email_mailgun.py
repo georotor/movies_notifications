@@ -1,6 +1,7 @@
 """Модуль отправки сообщений через Mailgun."""
 
 import logging
+from http import HTTPStatus
 
 import aiohttp
 import backoff
@@ -35,7 +36,7 @@ class MailgunSender(Sender):
                 },
             )
 
-            if response.status != 200:
+            if response.status != HTTPStatus.OK:
                 logger.error('Error sending email: {0}'.format(await response.text()))
                 raise SenderError('Error sending email: {0}'.format(await response.text()))
 
