@@ -26,4 +26,4 @@ async def notification_create(
         await notifications.send(event)
         return {'status': 'successfully created'}
     except NotificationError as err:
-        raise HTTPException(status_code=400, detail=str(err))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))

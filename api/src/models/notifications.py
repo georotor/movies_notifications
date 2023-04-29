@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 from typing import Optional
 
 from cron_validator import CronValidator
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from pydantic import BaseModel, Field, conlist, validator
 
 
@@ -34,7 +34,10 @@ class Event(BaseModel):
     def validate_event(cls, event, values):
         """Проверка корректности поля event."""
         if not values.get('template_id') and not event:
-            raise HTTPException(status_code=400, detail='Must be one of the fields template_id or event')
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail='Must be one of the fields template_id or event',
+            )
         return event
 
 
@@ -63,12 +66,18 @@ class ScheduledNotification(BaseModel):
     def validate_cron(cls, cron, values):
         """Проверка корректности поля cron."""
         if not values.get('timestamp_start') and not cron:
-            raise HTTPException(status_code=400, detail='Must be one of the fields timestamp_start or cron')
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail='Must be one of the fields timestamp_start or cron',
+            )
 
         if cron:
             try:
                 CronValidator.parse(cron)
             except ValueError as err:
-                raise HTTPException(status_code=400, detail='Invalid field cron: {0}'.format(err))
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail='Invalid field cron: {0}'.format(err),
+                )
 
         return cron

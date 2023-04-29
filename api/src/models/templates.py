@@ -2,7 +2,7 @@
 
 from uuid import UUID, uuid4
 
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from jinja2 import TemplateSyntaxError, Environment
 from pydantic import BaseModel, Field, validator
 
@@ -23,13 +23,19 @@ class Template(BaseModel):
     def validate_subject(cls, subject, values):
         """Проверка корректности поля subject."""
         if values.get('type') == TypeEnum.email and not subject:
-            raise HTTPException(status_code=400, detail='Subject field is required for email type')
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail='Subject field is required for email type',
+            )
 
         if subject:
             try:
                 Environment().parse(subject)
             except TemplateSyntaxError as err:
-                raise HTTPException(status_code=400, detail='Invalid template subject: {0}'.format(err))
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail='Invalid template subject: {0}'.format(err),
+                )
 
         return subject
 
@@ -39,6 +45,9 @@ class Template(BaseModel):
         try:
             Environment().parse(content)
         except TemplateSyntaxError as err:
-            raise HTTPException(status_code=400, detail='Invalid template content: {0}'.format(err))
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail='Invalid template content: {0}'.format(err),
+            )
 
         return content
