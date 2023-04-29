@@ -29,13 +29,16 @@ async def create(
     if template.event is not None:
         result = await db.get_one('templates', {'event': template.event, 'type': template.type})
         if result:
-            raise HTTPException(status_code=400, detail='Template with this event and type already exists')
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail='Template with this event and type already exists',
+            )
 
     try:
         result = await db.save('templates', template.dict())
         logger.info('Created template {0} {1}'.format(result.inserted_id, template))
     except DBManagerError as err:
-        raise HTTPException(status_code=400, detail=str(err))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
 
     return {
         'status': 'successfully created',
@@ -77,7 +80,7 @@ async def get_one(
         return TemplateFull.parse_obj(template)
 
     logger.info('Template {0} not found'.format(template_id))
-    raise HTTPException(status_code=404, detail='Template not found')
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Template not found')
 
 
 @router.put(
@@ -103,7 +106,7 @@ async def update(
         return TemplateFull.parse_obj(await db.get_one('templates', {'template_id': template_id}))
 
     logger.info('Template {0} not found or not updated'.format(template_id))
-    raise HTTPException(status_code=404, detail='Template not found or not updated')
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Template not found or not updated')
 
 
 @router.delete(
@@ -123,4 +126,4 @@ async def delete(
         return {'message': 'Template deleted'}
 
     logger.info('Template {0} not found'.format(template_id))
-    raise HTTPException(status_code=404, detail='Template not found')
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Template not found')

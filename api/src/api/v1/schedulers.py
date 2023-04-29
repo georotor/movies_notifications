@@ -49,7 +49,7 @@ async def create(
         result = await notifications.create(ScheduledNotification.parse_obj(notify.dict()))
         return ScheduledNotificationFull.parse_obj(result.dict())
     except NotificationError as err:
-        raise HTTPException(status_code=400, detail=str(err))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
 
 
 @router.get(
@@ -68,7 +68,7 @@ async def get_one(
         return ScheduledNotificationFull.parse_obj(notify)
 
     logger.info('Scheduled notifications {0} not found'.format(scheduled_id))
-    raise HTTPException(status_code=404, detail='Scheduled notifications not found')
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Scheduled notifications not found')
 
 
 @router.put(
@@ -84,7 +84,7 @@ async def update(
     try:
         await notifications.update(ScheduledNotification.parse_obj(notify.dict()))
     except NotificationError as err:
-        raise HTTPException(status_code=400, detail=str(err))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
 
     return {'status': 'Scheduled notification updated'}
 
@@ -102,6 +102,6 @@ async def delete(
     try:
         await notifications.remove(scheduled_id)
     except NotificationError as err:
-        raise HTTPException(status_code=400, detail=str(err))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
 
     return {'status': 'Scheduled notification removed'}
