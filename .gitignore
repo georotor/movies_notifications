@@ -144,3 +144,6 @@ dmypy.json
 
 .python-version
 
+/.env.api
+/.env.scheduler
+/.env.worker

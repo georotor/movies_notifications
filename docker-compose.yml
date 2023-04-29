@@ -32,9 +32,8 @@ services:
 
   api:
     build: ./api
-    environment:
-      - MONGO_URI=mongodb://mongodb:27017/
-      - RABBIT_URI=amqp://guest:guest@rabbitmq/
+    env_file:
+      - ./.env.api
     expose:
       - 8000
     depends_on:
@@ -60,9 +59,8 @@ services:
 
   scheduler:
     build: ./scheduler
-    environment:
-      - MONGO_URI=mongodb://mongodb:27017/
-      - RABBIT_URI=amqp://guest:guest@rabbitmq/
+    env_file:
+      - ./.env.scheduler
     depends_on:
       mongodb:
         condition: service_healthy
@@ -76,9 +74,8 @@ services:
 
   worker:
     build: ./worker
-    environment:
-      - MONGO_URI=mongodb://mongodb:27017/
-      - RABBIT_URI=amqp://guest:guest@rabbitmq/
+    env_file:
+      - ./.env.worker
     depends_on:
       mongodb:
         condition: service_healthy
