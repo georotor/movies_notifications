@@ -3,6 +3,7 @@
 import json
 import logging
 from uuid import UUID
+from http import HTTPStatus
 
 import aiohttp
 import backoff
@@ -26,9 +27,9 @@ class UserData(Auth):
         """Получения данных одного пользователя."""
         async with aiohttp.ClientSession() as session:
             async with session.get('{0}/{1}'.format(self.url, user_id), headers=self.headers) as response:
-                if response.status == 200:
+                if response.status == HTTPStatus.OK:
                     return await response.json()
-                elif response.status == 404:
+                elif response.status == HTTPStatus.NOT_FOUND:
                     logger.warning('User {0} not found'.format(user_id))
                 else:
                     logger.error('Unexpected response status {0}'.format(response.status))
@@ -45,9 +46,9 @@ class UserData(Auth):
                     json=json.dumps(user_ids, default=str),
                     headers=self.headers
             ) as response:
-                if response.status == 200:
+                if response.status == HTTPStatus.OK:
                     return await response.json()
-                elif response.status == 404:
+                elif response.status == HTTPStatus.NOT_FOUND:
                     logger.warning('Users not found')
                 else:
                     logger.error('Unexpected response status {0}'.format(response.status))

@@ -1,6 +1,7 @@
 """Модуль отправки сообщений через SendGrid."""
 
 import logging
+from http import HTTPStatus
 
 import backoff
 from sendgrid import SendGridAPIClient
@@ -33,7 +34,7 @@ class SendGridEmailSender(Sender):
 
         response = await self.sg_client.send(message)
 
-        if response.status_code != 200:
+        if response.status_code != HTTPStatus.OK:
             logger.error('Failed to send email: {0}'.format(response.body))
             raise SenderError('Failed to send email: {0}'.format(response.body))
 
