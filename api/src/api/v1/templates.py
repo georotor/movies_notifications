@@ -3,7 +3,7 @@
 import logging
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from api.v1.schemas.templates import TemplateShort, TemplateFull
 from db.managers.abstract import AbstractDBManager, DBManagerError
@@ -53,8 +53,8 @@ async def create(
     response_model=list[TemplateShort]
 )
 async def get_list(
-    skip: int = 0,
-    limit: int = 10,
+    skip: int = Query(default=0, ge=0, description='Количество шаблонов, которые нужно пропустить'),
+    limit: int = Query(default=10, ge=10, le=100, description='Количество возвращаемых шаблонов'),
     db: AbstractDBManager = Depends(get_db_manager)
 ):
     """Список шаблонов."""
