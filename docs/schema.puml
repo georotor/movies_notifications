@@ -1,11 +1,11 @@
 @startuml
 skinparam componentStyle uml2
 
-package "Notifications service" as Notifications {
+package "Notifications service" as Notifications #LightGreen {
     component "[Nginx]" as Nginx <<Web>>
     component "[FastAPI]" as NotificationsApi <<Notifications API>>
     component "[Python App]" as Scheduler <<Scheduler>>
-    queue "RabbitMQ" as Rabbit {
+    queue "RabbitMQ" as Rabbit #White {
         agent "Send Queue" as EmailQueue
     }
     database "[Mongo]" as Mongo <<Storage>>
@@ -38,7 +38,4 @@ Worker ---> ELK : Логи об отправке
 AdminPanel --up-> Nginx : Рассылки от\n менеджеров
 AuthAPI -up-> Nginx : Регистрация нового\n пользователя
 
-
-
 @enduml
-
